@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Junyu | Cyber Security & Networking</title>
+    <meta name="description" content="Junyu — Singapore-based high schooler passionate about cyber security, networking, and building things that matter." />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,800;0,900;1,300&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+
+    <!-- ─── Modal ─────────────────────────────── -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" id="modal">
+        <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+        <div class="modal-img-wrap">
+          <img id="modal-img" src="" alt="" />
+        </div>
+        <div class="modal-body">
+          <div class="modal-tags" id="modal-tags"></div>
+          <h2 class="modal-title" id="modal-title"></h2>
+          <p class="modal-desc" id="modal-desc"></p>
+          <a class="modal-link magnetic-btn" id="modal-link" href="" target="_blank">View on GitHub →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Navbar ─────────────────────────────── -->
+    <nav class="navbar" id="navbar">
+      <div class="logo">JY</div>
+      <div class="nav-links">
+        <a href="#about"   class="nav-btn">About</a>
+        <a href="#certs"   class="nav-btn">Certs</a>
+        <a href="#builds"  class="nav-btn">Builds</a>
+        <a href="#contact" class="nav-btn">Contact</a>
+      </div>
+    </nav>
+
+    <main>
+
+      <!-- ─── Hero ────────────────────────────── -->
+      <section class="hero" id="hero">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          <span></span>
+        </div>
+        <h1 class="hero-title">
+          <span class="line-wrap"><em class="line">Hi, I'm Junyu —</em></span>
+          <span class="line-wrap"><span class="line">High Schooler</span></span>
+          <span class="line-wrap"><span class="line">&amp; Builder.</span></span>
+        </h1>
+        <p class="hero-sub">Cyber Security · Networking · Open Source</p>
+        <div class="hero-scroll">
+          <div class="scroll-line"></div>
+          <span>Scroll</span>
+        </div>
+      </section>
+
+      <!-- ─── About ────────────────────────────── -->
+      <section class="about" id="about">
+        <div class="about-left">
+          <p class="eyebrow">01 — Mission</p>
+          <div class="about-stat-stack">
+            <div class="stat-item">
+              <span class="stat-num" data-target="18">0</span>
+              <span class="stat-label">Repos</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-num" data-target="2">0</span>
+              <span class="stat-label">IBM Certs</span>
+            </div>
+          </div>
+
+          <div class="tech-stack">
+            <p class="eyebrow">Languages Used</p>
+            <div class="tech-tags">
+              <span class="tech-pill">JavaScript</span>
+              <span class="tech-pill">Python</span>
+              <span class="tech-pill">HTML / CSS</span>
+              <span class="tech-pill">SQL</span>
+              <span class="tech-pill">Bash</span>
+              <span class="tech-pill">Typescript</span>
+            </div>
+          </div>
+        </div>
+        <div class="about-right">
+          <div class="discipline-card panel-sec" data-index="01">
+            <div class="dc-bg-num">01</div>
+            <h3>Security</h3>
+            <p>Deeply focused on penetration testing, identifying application-layer vulnerabilities, and building robust defense mechanisms. Experienced in simulating real-world attack vectors (SQLi, XSS) and developing custom SOC dashboards for real-time threat monitoring.</p>
+          </div>
+          <div class="discipline-card panel-net" data-index="02">
+            <div class="dc-bg-num">02</div>
+            <h3>Networking</h3>
+            <p>Specialized in optimizing network traffic routing and packet analysis. Built to understand the web at its foundational layers—from raw TCP/IP data transmission to engineering custom, lightweight HTTP proxy servers for security interception.</p>
+          </div>
+          <div class="discipline-card panel-dev" data-index="03">
+            <div class="dc-bg-num">03</div>
+            <h3>Development</h3>
+            <p>Bridging the gap between theory and functional products. Extensive experience engineering full-stack production tools, high-performance browser extensions, and seamlessly integrating external AI APIs natively into the browser.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Certifications ───────────────────── -->
+      <section class="certs-section" id="certs">
+        <div class="certs-inner">
+          <p class="eyebrow">02 — Credentials</p>
+          <h2 class="certs-heading">
+            <span class="line-wrap"><span class="line">IBM Certified.</span></span>
+          </h2>
+          <p class="certs-sub">Formally recognised by IBM in two cutting-edge fields.</p>
+
+          <div class="certs-grid">
+            <div class="cert-card">
+              <div class="cert-logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" alt="IBM" />
+              </div>
+              <div class="cert-body">
+                <span class="cert-badge">Certified</span>
+                <h3>Artificial Intelligence</h3>
+                <p>Fundamentals of AI, machine learning, deep learning, and deploying real-world AI solutions using IBM tooling and cloud platforms.</p>
+              </div>
+              <div class="cert-glow"></div>
+            </div>
+
+            <div class="cert-card">
+              <div class="cert-logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" alt="IBM" />
+              </div>
+              <div class="cert-body">
+                <span class="cert-badge">Certified</span>
+                <h3>Cyber Security</h3>
+                <p>Core principles of cyber security, threat intelligence, incident response, and protecting data infrastructure in enterprise environments.</p>
+              </div>
+              <div class="cert-glow"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Builds ───────────────────────────── -->
+      <section class="builds-section" id="builds">
+        <div class="builds-header-absolute">
+          <p class="eyebrow centered">03 — Selected Builds</p>
+        </div>
+
+        <div class="builds-container">
+          <!-- Card 1: CyberAttacks-Simulation -->
+          <div class="build-card panel-1"
+            data-title="CyberAttacks-Simulation"
+            data-desc="A real vulnerable website built to practice SQL injection, XSS, and other common attack vectors. Ships with a fully built-in SOC monitoring dashboard for real-time alerting and defense analysis. Built as a controlled environment to bridge the gap between theory and practical exploitation."
+            data-tags="HTML,CSS,Security,SQLi"
+            data-img="https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=1500&auto=format&fit=crop"
+            data-github="https://github.com/jjtjtyt6644/CyberAttacks-Simulation">
+            <div class="build-image-wrapper">
+              <img src="https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=1500&auto=format&fit=crop" alt="CyberAttacks" />
+            </div>
+            <div class="build-info">
+              <div class="info-content-clip"><h3>CyberAttacks</h3></div>
+              <div class="info-content-clip"><h3>Simulation</h3></div>
+              <div class="info-meta">
+                <p>Vulnerable site + SOC dashboard for real-time threat monitoring and injection practice.</p>
+                <div class="tags">
+                  <span>HTML / CSS</span><span>Security</span>
+                  <button class="tag-link open-modal-btn">Explore →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: FocusMode -->
+          <div class="build-card panel-2"
+            data-title="FocusMode"
+            data-desc="A Google Chrome extension built specifically for productivity. FocusMode lets you block distracting websites, set deep-work timers, and enforce study sessions directly from the browser toolbar. Designed to eliminate context-switching and keep you locked in on what matters."
+            data-tags="JavaScript,Chrome Extension,Productivity"
+            data-img="./assets/focusmode.png"
+            data-github="https://github.com/jjtjtyt6644/FocusMode">
+            <div class="build-image-wrapper right-align">
+              <img src="./assets/focusmode.png" alt="FocusMode" />
+            </div>
+            <div class="build-info left-align">
+              <div class="info-content-clip"><h3>Focus</h3></div>
+              <div class="info-content-clip"><h3>Mode</h3></div>
+              <div class="info-meta">
+                <p>Chrome extension that enforces deep-work sessions by blocking distractions from the toolbar.</p>
+                <div class="tags">
+                  <span>JavaScript</span><span>Extension</span>
+                  <button class="tag-link open-modal-btn">Explore →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Ai-Vision -->
+          <div class="build-card panel-3"
+            data-title="Ai-Vision"
+            data-desc="An AI-powered Google Chrome extension that works like any other AI assistant but lives directly in your browser. Ai-Vision allows you to query images and page content with natural language, overlaying real-time AI analysis without ever leaving your current tab."
+            data-tags="HTML,JavaScript,AI,Chrome Extension"
+            data-img="https://images.unsplash.com/photo-1677442135968-6db3b0025e95?q=80&w=1500&auto=format&fit=crop"
+            data-github="https://github.com/jjtjtyt6644/Ai-Vison-">
+            <div class="build-image-wrapper">
+              <img src="https://images.unsplash.com/photo-1677442135968-6db3b0025e95?q=80&w=1500&auto=format&fit=crop" alt="Ai-Vision" />
+            </div>
+            <div class="build-info">
+              <div class="info-content-clip"><h3>Ai</h3></div>
+              <div class="info-content-clip"><h3>Vision</h3></div>
+              <div class="info-meta">
+                <p>AI-powered browser assistant with real-time visual analysis — query anything on your screen.</p>
+                <div class="tags">
+                  <span>HTML / JS</span><span>AI</span>
+                  <button class="tag-link open-modal-btn">Explore →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Card 4: Proxyyy -->
+          <div class="build-card panel-4"
+            data-title="Proxy"
+            data-desc="A lightweight HTTP proxy server built to handle network traffic routing efficiently while providing security interception layers."
+            data-tags="Proxy,Networking,Security"
+            data-img="./assets/proxy.png"
+            data-github="https://github.com/jjtjtyt6644/Proxyyy">
+            <div class="build-image-wrapper right-align">
+              <img src="./assets/proxy.png" alt="Proxyyy" />
+            </div>
+            <div class="build-info left-align">
+              <div class="info-content-clip"><h3>Proxy</h3></div>
+              <div class="info-meta">
+                <p>An efficient proxy server designed for robust traffic routing and interception.</p>
+                <div class="tags">
+                  <span>Networking</span><span>Proxy</span>
+                  <button class="tag-link open-modal-btn">Explore →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Contact ──────────────────────────── -->
+      <section class="contact" id="contact">
+        <p class="eyebrow centered contact-eyebrow">04 — Let's Connect</p>
+        <h2 class="contact-title">
+          <span class="line-wrap"><span class="line">Let's</span></span>
+          <span class="line-wrap"><em class="line">Talk.</em></span>
+        </h2>
+        <p class="contact-sub">Open to collaborations, security chats, and everything in between.</p>
+        <div class="contact-links">
+          <a href="mailto:yaoprox0@gmail.com" class="magnetic-btn" id="btn-email">yaoprox0@gmail.com</a>
+          <a href="https://github.com/jjtjtyt6644" target="_blank" class="magnetic-btn" id="btn-gh">GitHub →</a>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ─── Mascot Widget ───────────────────────────── -->
+    <div class="mascot-widget" id="mascot-widget">
+      <!-- Speech bubble -->
+      <div class="mascot-bubble" id="mascot-bubble">
+        <span class="bubble-text" id="bubble-text">Hi! I'm Junyu's guide. Scroll down to explore! 👋</span>
+        <button class="bubble-close" id="bubble-close" aria-label="Dismiss">✕</button>
+      </div>
+
+      <!-- Character container -->
+      <div class="mascot-char" id="mascot-char">
+        <img src="./assets/mascot.png" alt="Junyu's mascot" />
+      </div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
