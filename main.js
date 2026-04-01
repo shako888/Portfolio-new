@@ -320,36 +320,13 @@ async function fetchElaboration(sectionId) {
     return CACHED_RESPONSES[sectionId]
   }
 
-  // Use Vite env var
-  const apiKey = import.meta.env.VITE_GROQ_API_KEY
-  if (!apiKey || apiKey === 'YOUR_GROQ_API_KEY_HERE') {
-    return "API key missing! Please set VITE_GROQ_API_KEY in the .env file! 🔑"
-  }
-
   const cleanContext = SECTION_CONTEXT[sectionId] || "Junyu's Portfolio space.";
 
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch('/api/chat', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [
-          {
-            role: 'system',
-            content: "You are a professional, knowledgeable AI guide for Junyu's cybersecurity portfolio. Read the exact context of the section the user is looking at and provide a concise, professional 1-2 sentence elaboration. Be direct and analytical. Limit yourself to a maximum of one emoji per response. Do not use quotes, filler intros, overly hyped language, or ask questions."
-          },
-          {
-            role: 'user',
-            content: `The user is looking at this section on my portfolio right now:\n${cleanContext}`
-          }
-        ],
-        max_tokens: 80,
-        temperature: 0.4
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ context: cleanContext })
     })
 
     const data = await response.json()
@@ -358,10 +335,10 @@ async function fetchElaboration(sectionId) {
       CACHED_RESPONSES[sectionId] = result // Cache it!
       return result
     }
-    return "Oops! My AI brain got scrambled! 😵‍💫"
+    return "The server encountered an error while processing context."
   } catch (err) {
-    console.error('Groq Error:', err)
-    return "Uh oh, connection to the AI matrix failed! 🔌"
+    console.error('API Error:', err)
+    return "The secure AI bridge is currently offline."
   }
 }
 
