@@ -80,12 +80,21 @@ a, button { text-decoration:none; font-family:inherit; cursor:pointer; }
   -webkit-backdrop-filter:blur(18px);
 }
 .logo { font-weight:900; font-size:1.3rem; letter-spacing:-0.02em; color:var(--text); }
-.nav-links { display:flex; gap:3rem; }
+.nav-links { display:flex; gap:3rem; align-items:center; }
 .nav-btn {
   font-size:0.8rem; font-weight:600;
   text-transform:uppercase; letter-spacing:2px;
   color:var(--muted); position:relative;
   padding-bottom:3px; transition:color .3s;
+}
+.nav-social-icon {
+  color: var(--muted);
+  transition: color 0.3s, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+}
+.nav-social-icon:hover {
+  color: var(--text);
+  transform: translateY(-2px);
 }
 .nav-btn:hover { color:var(--text); }
 .nav-btn::after {
