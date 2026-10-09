@@ -1,6 +1,8 @@
 import Lenis from '@studio-freight/lenis'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { initGallery } from './gallery.js'
+import { initPalette } from './palette.js'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -43,8 +45,10 @@ if (isTouch) {
 
 
 const navbar = document.querySelector('.navbar')
-lenis.on('scroll', ({ scroll }) => {
+const progressBar = document.getElementById('scroll-progress-bar')
+lenis.on('scroll', ({ scroll, limit }) => {
   navbar.classList.toggle('scrolled', scroll > 60)
+  if (progressBar) progressBar.style.transform = `scaleX(${limit ? scroll / limit : 0})`
 })
 
 
@@ -252,6 +256,8 @@ function openModal(card) {
 
   modalImg.src = img
   modalImg.alt = title
+  const isIcon = !!card.querySelector('.build-image-wrapper.is-icon')
+  modalImg.parentElement.classList.toggle('is-icon', isIcon)
   modalTitle.textContent = title
   modalDesc.textContent = desc
   modalLink.href = github
@@ -327,7 +333,7 @@ const SECTION_CONTEXT = {
   hero: "Junyu's Hero Section: A high schooler from Singapore passionate about Cybersecurity, AI, and Networking. Mission is breaking things legally.",
   about: "Junyu's About Section: 18+ GitHub repos. 2 IBM certifications. Specializes in Security, Networking, and rapid development.",
   certs: "Junyu's Certifications: IBM AI Certified and IBM Cyber Security Certified while still in high school.",
-  builds: "Junyu's Projects: 1. CyberAttacks-Simulation (vulnerable site with SOC dashboard). 2. FocusMode (Chrome productivity extension). 3. Ai-Vision (AI browser assistant). 4. Proxyyy (a proxy server for traffic routing & security).",
+  builds: "Junyu's Selected Builds: 1. Web Proxy / Ambient (a web-based proxy with games and apps pages, one-click Vercel deploy). 2. CompTools (a Windows utility for hardware diagnostics, one-click winget installs and system tweaks, built in C#/.NET). 3. Killswitch (an Electron tray app whose panic hotkey closes every running game). 4. Roblox Account Manager (a Rust app that runs many Roblox accounts at once with auto-reconnect and memory/CPU savers).",
   gallery: "Junyu's Projects Gallery: Everything he has built, including security, networking, AI, tools, and web projects.",
   experience: "Fake interactive terminal — try commands: help, ls, cat about.txt, whoami, pwd, echo [text], sudo, clear, ./run_next_module.sh, matrix.",
   contact: "Junyu's Contact Page. Please note he is a high schooler!"
@@ -1102,100 +1108,54 @@ function setupInteractiveTerminal(termBody, cursor) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   NODE NETWORK BACKGROUND
+   CINEMATIC 3D STAGE — scroll-bound Three.js film (scene/)
+   Loaded after first paint so the hero intro isn't blocked by three.js.
 ═══════════════════════════════════════════════════════════════ */
-const canvas = document.getElementById('network-canvas');
-if (canvas) {
-  const ctx = canvas.getContext('2d');
-  let width, height;
-  let particles = [];
-
-  function resizeCanvas() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = canvas.parentElement.offsetHeight;
-  }
-
-  window.addEventListener('resize', resizeCanvas);
-  setTimeout(resizeCanvas, 100);
-
-  class Particle {
-    constructor() {
-      this.x = Math.random() * window.innerWidth;
-      this.y = Math.random() * 800;
-      this.vx = (Math.random() - 0.5) * 0.8;
-      this.vy = (Math.random() - 0.5) * 0.8;
-      this.size = Math.random() * 2 + 1;
-    }
-    update() {
-      this.x += this.vx;
-      this.y += this.vy;
-      if (this.x < 0 || this.x > width) this.vx *= -1;
-      if (this.y < 0 || this.y > height) this.vy *= -1;
-    }
-    draw() {
-      ctx.fillStyle = 'rgba(125, 211, 252, 0.5)';
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  for (let i = 0; i < 60; i++) particles.push(new Particle());
-
-  let mouse = { x: null, y: null };
-  const contactSection = document.getElementById('contact');
-  if (contactSection) {
-    contactSection.addEventListener('mousemove', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = e.clientX - rect.left;
-      mouse.y = e.clientY - rect.top;
-    });
-    contactSection.addEventListener('mouseleave', () => {
-      mouse.x = null; mouse.y = null;
-    });
-  }
-
-  function animateNetwork() {
-    if (!width) return requestAnimationFrame(animateNetwork);
-    ctx.clearRect(0, 0, width, height);
-
-    for (let i = 0; i < particles.length; i++) {
-      particles[i].update();
-      particles[i].draw();
-
-      for (let j = i; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < 100) {
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(125, 211, 252, ${0.4 * (1 - dist / 100)})`;
-          ctx.lineWidth = 0.5;
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.stroke();
-        }
-      }
-
-      if (mouse.x != null) {
-        const dx = particles[i].x - mouse.x;
-        const dy = particles[i].y - mouse.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 150) {
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(125, 211, 252, ${0.8 * (1 - dist / 150)})`;
-          ctx.lineWidth = 1;
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(mouse.x, mouse.y);
-          ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(animateNetwork);
-  }
-  animateNetwork();
+const stageCanvas = document.getElementById('stage')
+if (stageCanvas) {
+  const bootStage = () => import('./scene/stage.js')
+    .then(({ initStage }) => initStage(stageCanvas))
+    .catch(err => {
+      console.error('Stage failed to load:', err)
+      document.documentElement.classList.add('no-webgl')
+    })
+  if ('requestIdleCallback' in window) requestIdleCallback(bootStage, { timeout: 1200 })
+  else setTimeout(bootStage, 300)
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   2.5D MASCOT — the mascot image as a living, cursor-aware WebGL card
+═══════════════════════════════════════════════════════════════ */
+{
+  const bootMascot = () => import('./scene/mascot.js')
+    .then(({ initMascot }) => initMascot(mascotChar))
+    .catch(err => console.warn('Mascot stays static:', err))
+  if ('requestIdleCallback' in window) requestIdleCallback(bootMascot, { timeout: 2000 })
+  else setTimeout(bootMascot, 600)
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ALL PROJECTS GALLERY + COMMAND PALETTE (gallery.js, palette.js)
+═══════════════════════════════════════════════════════════════ */
+const gallery = initGallery({ lenis })
+
+initPalette({
+  lenis,
+  openProject: name => gallery.openProject?.(name),
+  actions: [
+    { label: 'Chat with Junyu’s AI guide', hint: 'Open the chat window', run: () => chatToggleBtn.click() },
+    {
+      label: 'Copy email address', hint: 'yaoprox0@gmail.com',
+      run: () => navigator.clipboard?.writeText('yaoprox0@gmail.com')
+        .then(() => typeText('Email copied to your clipboard 📋'))
+        .catch(() => { window.location.href = 'mailto:yaoprox0@gmail.com' }),
+    },
+    { label: 'Open GitHub profile', hint: 'github.com/jjtjtyt6644', run: () => window.open('https://github.com/jjtjtyt6644', '_blank', 'noopener') },
+    { label: 'View badges on Credly', hint: 'IBM SkillsBuild', run: () => window.open('https://www.credly.com/users/yao-junyu/badges', '_blank', 'noopener') },
+    { label: 'Search all projects', hint: 'Focus the gallery search', keywords: 'filter find repo', run: () => { lenis.scrollTo('#gallery', { offset: -40 }); setTimeout(() => document.getElementById('gallery-search')?.focus(), 900) } },
+    { label: 'Toggle Red Team mode', hint: 'Easter egg', keywords: 'konami red theme', run: () => document.body.classList.toggle('red-team-mode') },
+  ],
+})
 
 /* ═══════════════════════════════════════════════════════════════
    DECRYPT CONTACT EMAIL
@@ -1386,207 +1346,6 @@ ScrollTrigger.create({
   onUpdate: (self) => {
     const idx = Math.min(Math.floor(self.progress * 4), 3)
     setActiveDot(idx)
-  }
-})
-
-/* ═══════════════════════════════════════════════════════════════
-   PROJECTS GALLERY
-═══════════════════════════════════════════════════════════════ */
-const GALLERY_PROJECTS = [
-  {
-    name: 'CyberAttacks-Simulation',
-    desc: 'A real vulnerable website built to practice SQL injection, XSS, and other common attack vectors. Ships with a fully built-in SOC monitoring dashboard for real-time alerting and defense analysis.',
-    lang: 'HTML',
-    tags: ['security'],
-    icon: '🛡️',
-    url: 'https://github.com/jjtjtyt6644/CyberAttacks-Simulation',
-  },
-  {
-    name: 'FocusMode',
-    desc: 'A Google Chrome extension that lets you block distracting websites, set deep-work timers, and enforce study sessions directly from the browser toolbar.',
-    lang: 'JavaScript',
-    tags: ['tools'],
-    icon: '⏱️',
-    url: 'https://github.com/jjtjtyt6644/FocusMode',
-  },
-  {
-    name: 'Ai-Vision',
-    desc: 'An AI-powered Google Chrome extension that works like any other AI assistant but lives in your browser. Query images and page content with natural language with real-time AI analysis.',
-    lang: 'JavaScript',
-    tags: ['ai', 'tools'],
-    icon: '🤖',
-    url: 'https://github.com/jjtjtyt6644/Ai-Vison-',
-  },
-  {
-    name: 'Proxyyy',
-    desc: 'A lightweight HTTP proxy server built to handle network traffic routing efficiently while providing security interception layers for deep packet analysis.',
-    lang: 'Python',
-    tags: ['networking', 'security'],
-    icon: '🌐',
-    url: 'https://github.com/jjtjtyt6644/Proxyyy',
-  },
-  {
-    name: 'AutoQuest-Plugin',
-    desc: 'A Vencord plugin that completes multiple Discord quests in the background simultaneously. Built using TypeScript by extending the Vencord modding framework.',
-    lang: 'TypeScript',
-    tags: ['tools'],
-    icon: '🎮',
-    url: 'https://github.com/jjtjtyt6644/AutoQuest-Plugin',
-  },
-  {
-    name: 'Autoquest-Installer',
-    desc: 'A fully automated installer that injects the AutoQuest plugin into Discord by modifying Vencord files. One-click setup experience built with CSS and shell scripting.',
-    lang: 'CSS',
-    tags: ['tools'],
-    icon: '⚙️',
-    url: 'https://github.com/jjtjtyt6644/Autoquest-Installer',
-  },
-  {
-    name: 'Aetheris',
-    desc: 'A distraction-free, aesthetically driven productivity workspace for students and creators. Full TypeScript app with ambient modes, task tracking, and focus sessions.',
-    lang: 'TypeScript',
-    tags: ['tools', 'web'],
-    icon: '🌌',
-    url: 'https://github.com/jjtjtyt6644/Aetheris',
-  },
-  {
-    name: 'Itinfinder-Website',
-    desc: 'ItinFinder is an ultra-modern, premium cross-platform React Native (Expo) travel application. It utilizes cutting-edge AI (Groq + OpenRouter) and live web scraping agents (TinyFish) to craft ultra-specific, vivid, and culturally immersive travel itineraries — with robust offline support, background intelligence, and a Pro cloud tier.',
-    lang: 'HTML',
-    tags: ['web', 'tools'],
-    icon: '🔍',
-    url: 'https://github.com/jjtjtyt6644/Itinfinder-Website',
-  },
-  {
-    name: 'Voting-web',
-    desc: 'A full-featured web voting platform with real-time vote tracking, candidate profiles, and a clean administrative dashboard for managing polls.',
-    lang: 'HTML',
-    tags: ['web'],
-    icon: '🗳️',
-    url: 'https://github.com/jjtjtyt6644/Voting-web',
-  },
-  {
-    name: 'Studify',
-    desc: 'A productivity-first study platform for students. Features timer-based sessions, note-taking, and progress analytics in a clean minimalist interface.',
-    lang: 'TypeScript',
-    tags: ['web', 'tools'],
-    icon: '📚',
-    url: 'https://github.com/jjtjtyt6644/Studify',
-  },
-  {
-    name: 'tution',
-    desc: 'A TypeScript-based tuition management platform. Handles scheduling, student profiles, and session tracking for private tutors and educational centres.',
-    lang: 'TypeScript',
-    tags: ['web'],
-    icon: '🏫',
-    url: 'https://github.com/jjtjtyt6644/tution',
-  },
-  {
-    name: 'Portfolio',
-    desc: 'This portfolio website itself — built with Vite, GSAP, and Lenis. Featuring cinematic scroll animations, an AI mascot, interactive terminal, and a custom cursor.',
-    lang: 'JavaScript',
-    tags: ['web'],
-    icon: '✨',
-    url: 'https://github.com/jjtjtyt6644/Portfolio',
-  },
-
-]
-
-const galleryGrid = document.getElementById('gallery-grid')
-const filterBtns = document.querySelectorAll('.gf-btn')
-
-function getLangColor(lang) {
-  const map = {
-    JavaScript: '#f7df1e',
-    TypeScript: '#3178c6',
-    Python: '#3572a5',
-    HTML: '#e34c26',
-    CSS: '#563d7c',
-  }
-  return map[lang] || '#64748b'
-}
-
-function renderGallery(filter = 'all') {
-  galleryGrid.innerHTML = ''
-  const filtered = filter === 'all'
-    ? GALLERY_PROJECTS
-    : GALLERY_PROJECTS.filter(p => p.tags.includes(filter))
-
-  filtered.forEach((proj, i) => {
-    const card = document.createElement('div')
-    card.className = 'gallery-card'
-    card.style.opacity = '0'
-    card.style.transform = 'translateY(30px)'
-    card.setAttribute('data-tags', proj.tags.join(','))
-
-    const tagsHTML = proj.tags.map(t => `<span class="gc-tag">${t}</span>`).join('')
-    const forkBadge = proj.isFork ? `<span class="gc-tag" style="opacity:0.6">fork</span>` : ''
-
-    card.innerHTML = `
-      <div class="gc-header">
-        <div class="gc-icon">${proj.icon}</div>
-        <span class="gc-lang" style="color:${getLangColor(proj.lang)};border-color:${getLangColor(proj.lang)}33">${proj.lang}</span>
-      </div>
-      <div class="gc-title">${proj.name}</div>
-      <p class="gc-desc">${proj.desc}</p>
-      <div class="gc-footer">
-        <div class="gc-tags">${tagsHTML}${forkBadge}</div>
-        <a href="${proj.url}" target="_blank" class="gc-link" onclick="event.stopPropagation()">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          GitHub
-        </a>
-      </div>
-    `
-
-    card.addEventListener('click', () => {
-      window.open(proj.url, '_blank')
-    })
-
-    galleryGrid.appendChild(card)
-
-    // Stagger animate in
-    setTimeout(() => {
-      gsap.to(card, {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        ease: 'power3.out',
-        delay: i * 0.05,
-      })
-    }, 10)
-  })
-}
-
-// Init gallery
-renderGallery('all')
-
-// Filter buttons
-filterBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    filterBtns.forEach(b => b.classList.remove('active'))
-    btn.classList.add('active')
-    renderGallery(btn.dataset.filter)
-  })
-})
-
-// Scroll-trigger entrance for gallery section
-ScrollTrigger.create({
-  trigger: '.gallery-section',
-  start: 'top 80%',
-  once: true,
-  onEnter: () => {
-    gsap.from('.gallery-heading .line', {
-      y: '110%',
-      duration: 1.4,
-      stagger: 0.1,
-      ease: 'expo.out',
-    })
-    gsap.from('.gallery-sub', {
-      opacity: 0, y: 20, duration: 1, ease: 'power3.out', delay: 0.4
-    })
-    gsap.from('.gf-btn', {
-      opacity: 0, y: 15, stagger: 0.07, duration: 0.6, ease: 'power2.out', delay: 0.6
-    })
   }
 })
 
