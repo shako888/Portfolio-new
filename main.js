@@ -329,17 +329,7 @@ const CACHED_RESPONSES = {
 }
 
 
-const SECTION_CONTEXT = {
-  hero: "Junyu's Hero Section: A high schooler from Singapore passionate about Cybersecurity, AI, and Networking. Mission is breaking things legally.",
-  about: "Junyu's About Section: 18+ GitHub repos. 2 IBM certifications. Specializes in Security, Networking, and rapid development.",
-  certs: "Junyu's Certifications: IBM AI Certified and IBM Cyber Security Certified while still in high school.",
-  builds: "Junyu's Selected Builds: 1. Web Proxy / Ambient (a web-based proxy with games and apps pages, one-click Vercel deploy). 2. CompTools (a Windows utility for hardware diagnostics, one-click winget installs and system tweaks, built in C#/.NET). 3. Killswitch (an Electron tray app whose panic hotkey closes every running game). 4. Roblox Account Manager (a Rust app that runs many Roblox accounts at once with auto-reconnect and memory/CPU savers).",
-  gallery: "Junyu's Projects Gallery: Everything he has built, including security, networking, AI, tools, and web projects.",
-  experience: "Fake interactive terminal — try commands: help, ls, cat about.txt, whoami, pwd, echo [text], sudo, clear, ./run_next_module.sh, matrix.",
-  contact: "Junyu's Contact Page. Please note he is a high schooler!"
-}
-
-
+// The facts for each section live server-side (api/_knowledge.js); the browser only sends the section id.
 async function fetchElaboration(sectionId) {
 
   // Always return pinned responses — never call the API for these sections
@@ -357,64 +347,33 @@ async function fetchElaboration(sectionId) {
     return CACHED_RESPONSES[sectionId]
   }
 
-  const cleanContext = SECTION_CONTEXT[sectionId] || "Junyu's Portfolio space.";
-
-  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  let result = "";
-
   try {
-    if (isLocal) {
-      const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (!apiKey) throw new Error("Local API key missing.");
-
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [
-            {
-              role: 'system',
-              content: "You are a supportive AI guide for Junyu's cybersecurity portfolio. Read the exact context of the section the user is looking at and summarize it in 1-2 friendly sentences. UNDER NO CIRCUMSTANCES should you give advice, critique, security warnings, or suggestions. You are strictly a narrator. Limit yourself to a maximum of one emoji. Do not use quotes, filler intros, overly hyped language, or ask questions."
-            },
-            {
-              role: 'user',
-              content: `The user is looking at this section on my portfolio right now:\n${cleanContext}`
-            }
-          ],
-          max_tokens: 80,
-          temperature: 0.4
-        })
-      });
-      const data = await res.json();
-      if (data.choices && data.choices.length > 0) {
-        result = data.choices[0].message.content.trim();
-      }
-    } else {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ context: cleanContext })
-      });
-
-      const data = await response.json();
-      if (data.choices && data.choices.length > 0) {
-        result = data.choices[0].message.content.trim();
-      }
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ section: sectionId || 'hero' })
+    })
+    const data = await response.json().catch(() => ({}))
+    if (response.ok && data.reply) {
+      CACHED_RESPONSES[sectionId] = data.reply
+      return data.reply
     }
-
-    if (result) {
-      CACHED_RESPONSES[sectionId] = result;
-      return result;
-    }
-    return "The server encountered an error while processing context.";
+    console.warn('Mascot narration unavailable:', data.error || response.status)
+    return FALLBACK_LINES[sectionId] || "Keep scrolling — there's more of Junyu's work below."
   } catch (err) {
-    console.error('API Error:', err)
-    return "The secure AI bridge is currently offline."
+    console.warn('Mascot narration unavailable:', err)
+    return FALLBACK_LINES[sectionId] || "Keep scrolling — there's more of Junyu's work below."
   }
+}
+
+// Shown when the AI can't be reached, so the mascot still says something accurate
+const FALLBACK_LINES = {
+  hero: "Junyu is a Singapore high-schooler building in cyber security, networking and open source.",
+  about: "Security, networking and development: the three things Junyu builds around.",
+  certs: "Two IBM SkillsBuild badges, AI and Cybersecurity Fundamentals. Both are verifiable on Credly.",
+  builds: "Four featured builds: a web proxy, CompTools, Killswitch and a Roblox account manager.",
+  gallery: "Every public repo, live from GitHub. Click a card to read its README 📂",
+  contact: "Want to reach Junyu? Email or GitHub, right here.",
 }
 
 
@@ -593,7 +552,7 @@ setTimeout(() => {
   lastSectionSwap = 0
 
 
-  CACHED_RESPONSES['hero'] = "Hello. I am Junyu's AI assistant. Scroll down, and I will provide real-time context on his work.";
+  CACHED_RESPONSES['hero'] = "Hi, I'm Junyu's guide! Scroll down and I'll tell you about each part of his work. Click me anytime 👋";
   switchSection('hero')
 }, 2400)
 
@@ -626,17 +585,38 @@ function appendMessage(role, text) {
   div.className = `chat-message ${role === 'user' ? 'user-message' : 'ai-message'}`
 
 
-  let formattedText = text
+  // Escape first, then apply a small safe subset of markdown: bold/italic, "- " bullets, links, line breaks
+  const inline = s => s
+    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\s][^*]*?)\*/g, '$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/(^|[\s(])(https:\/\/[^\s<)]+[^\s<).,!?;:])/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>')
+    .replace(/(^|[\s(])(github\.com\/[\w.-]*[\w-](?:\/[\w.-]*[\w-])?)/g, '$1<a href="https://$2" target="_blank" rel="noopener">$2</a>')
+    .replace(/(^|[\s(])([\w.+-]+@[\w-]+\.[\w.]+[a-z])/gi, '$1<a href="mailto:$2">$2</a>')
+
+  const escaped = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;")
-    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>');
 
-  div.innerHTML = formattedText
+  let html = ''
+  let inList = false
+  for (const line of escaped.split(/\r?\n/)) {
+    const bullet = /^\s*(?:[-•*]|\d+\.)\s+(.*)$/.exec(line)
+    if (bullet) {
+      if (!inList) { html += '<ul>'; inList = true }
+      html += `<li>${inline(bullet[1])}</li>`
+      continue
+    }
+    if (inList) { html += '</ul>'; inList = false }
+    if (line.trim()) html += `<p>${inline(line)}</p>`
+  }
+  if (inList) html += '</ul>'
+
+  div.innerHTML = html
   aiChatMessages.appendChild(div)
 
 
@@ -727,47 +707,33 @@ async function handleChatSubmit() {
   aiChatMessages.scrollTop = aiChatMessages.scrollHeight
 
 
-  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
-  let responseText = "Connection failed."
+  let responseText = ''
+  let failed = false
 
   try {
-    if (isLocal) {
-      const apiKey = import.meta.env.VITE_GROQ_API_KEY
-      if (!apiKey) throw new Error("Local API key missing.")
-
-      const truncatedHistory = conversationHistory.slice(-8);
-      const payloadMessages = [
-        { role: 'system', content: `You are the official Professional AI Scout and Recruitment Representative for Junyu (@jjtjtyt6644). Your objective is to provide high-level, technical, and professional insights to CEOs, CTOs, and recruiters visiting this portfolio. Core Identity of Junyu: Independent Cybersecurity Professional and Full-Stack Developer. IBM Certified: Professional AI and Professional Cyber Security. GitHub Identity: jjtjtyt6644 (over 17 active repositories). Professional Protocols: Tone: Extremely polished, analytical, and recruitment-ready. Perspective: ALWAYS speak about Junyu in the THIRD PERSON. NEVER address the user as Junyu. Target Audience: High-level decision-makers and recruiters. Guardrails: Do NOT hallucinate. If asked about something you do not know, state: "I have no relevant information on that specific topic at this time. However, you can contact Junyu directly via GitHub: https://github.com/jjtjtyt6644"` },
-        ...truncatedHistory
-      ]
-
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: payloadMessages, max_tokens: 512, temperature: 0.5 })
-      })
-      const data = await res.json()
-      responseText = data.choices[0].message.content.trim()
-    } else {
-
-      const res = await fetch('/api/converse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ history: conversationHistory.slice(-8) })
-      })
-      const data = await res.json()
-      if (data.error) throw new Error(data.error)
-      responseText = data.choices[0].message.content.trim()
-    }
+    // The server reads the site facts, live GitHub data and any relevant README before answering
+    const res = await fetch('/api/converse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ history: conversationHistory.slice(-8), section: activeSection || 'hero' })
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || !data.reply) throw new Error(data.error || `HTTP ${res.status}`)
+    responseText = data.reply
   } catch (err) {
-    console.error("Chat Error:", err)
-    responseText = "Sorry, my neural link is currently offline."
+    console.error('Chat Error:', err)
+    failed = true
+    responseText = /quickly|busy/i.test(err.message)
+      ? err.message
+      : "Sorry, I can't reach my brain right now. You can email Junyu at yaoprox0@gmail.com or check github.com/jjtjtyt6644."
   }
 
 
   loadingDiv.remove()
   appendMessage('ai', responseText)
-  conversationHistory.push({ role: 'assistant', content: responseText })
+  // Don't feed error messages back to the model as if it had said them
+  if (failed) conversationHistory.pop()
+  else conversationHistory.push({ role: 'assistant', content: responseText })
 }
 
 
@@ -780,7 +746,7 @@ aiChatInput.addEventListener('keydown', (e) => {
 let firstOpen = true;
 chatToggleBtn.addEventListener('click', () => {
   if (firstOpen) {
-    appendMessage('ai', "Hello! I am Junyu's AI guide. I'm here to provide professional context or answer questions about his background, projects, and work-workflow. What can I help you with today?");
+    appendMessage('ai', "Hi! I'm Junyu's AI guide. Ask me about his projects, how something he built works, or what he's been working on lately. I read his live GitHub repos and READMEs, so try things like:\n- How does Killswitch work?\n- What did Junyu push most recently?\n- What languages does he use?");
     firstOpen = false;
   }
 });

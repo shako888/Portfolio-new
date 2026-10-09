@@ -1009,6 +1009,14 @@ body.red-team-mode .mascot-canvas { filter: drop-shadow(0 12px 28px rgba(239,68,
   border-bottom-left-radius: 4px; border-left: 3px solid var(--accent);
   text-align: left !important;
 }
+/* Replies are rendered as paragraphs/lists, so whitespace no longer needs preserving */
+.chat-message:has(p, ul) { white-space: normal; }
+.chat-message p + p, .chat-message p + ul, .chat-message ul + p { margin-top: 0.55rem; }
+.chat-message ul { padding-left: 1.15rem; margin: 0.35rem 0 0; }
+.chat-message li + li { margin-top: 0.25rem; }
+.ai-message a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.user-message a { color: inherit; text-decoration: underline; }
+
 .user-message {
   align-self: flex-end; background: var(--text); color: var(--bg);
   border-bottom-right-radius: 4px; font-weight: 600;
