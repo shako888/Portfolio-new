@@ -6,7 +6,7 @@
   --surface:  rgba(255,255,255,0.04);
   --border:   rgba(255,255,255,0.09);
   --text:     #eef2ff;
-  --muted:    #64748b;
+  --muted:    #8b95a7; /* was #64748b (~4.2:1 on --bg); this passes 4.5:1 for body text */
   --accent:   #7dd3fc;
   --font:     'Inter', sans-serif;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -480,6 +480,35 @@ a, button { text-decoration:none; font-family:inherit; cursor:pointer; }
 .tag-link:hover, .open-modal-btn:hover {
   background:var(--accent); color:var(--bg);
   border-color:var(--accent);
+}
+
+/* Featured "lead developer" build (Quillwave): role badge, primary download, live release line */
+.info-meta > p.build-role {
+  display:inline-flex; align-items:center; gap:.5rem;
+  background:linear-gradient(90deg, rgba(167,139,250,.18), rgba(125,211,252,.12));
+  border:1px solid rgba(167,139,250,.4); border-radius:30px;
+  padding:.35rem .9rem; margin-bottom:.9rem;
+  font-size:.72rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+  color:#ddd6fe; backdrop-filter:none;
+}
+.info-meta > p.build-role::before {
+  content:''; width:7px; height:7px; border-radius:50%;
+  background:#a78bfa; box-shadow:0 0 8px #a78bfa;
+}
+.tag-link.download-btn {
+  display:inline-flex; align-items:center; gap:.5rem;
+  min-height:40px; padding:.5rem 1.2rem;
+  background:var(--accent); color:var(--bg); border-color:var(--accent);
+}
+.tag-link.download-btn:hover { background:#bae6fd; border-color:#bae6fd; }
+.tags .download-btn span {
+  /* undo the generic pill style that .tags span gives the label */
+  font-size:inherit; font-weight:inherit; text-transform:none; letter-spacing:0;
+  color:inherit; border:0; padding:0; border-radius:0;
+}
+.info-meta > p.release-meta {
+  margin:.9rem 0 0; padding:0; background:none; border:0; backdrop-filter:none;
+  font-size:.75rem; color:#8b95a7; letter-spacing:.3px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1736,6 +1765,15 @@ kbd {
 }
 .gallery-card:hover .gc-spot { opacity: 1; }
 .gc-lang { display: inline-flex; align-items: center; gap: 0.45rem; color: #a9b2c3; }
+.gc-role, .pd-meta .pd-role {
+  display: inline-block; vertical-align: middle; margin-left: 0.4rem;
+  font-size: 0.6rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+  color: #ddd6fe; border: 1px solid rgba(167,139,250,0.45); background: rgba(167,139,250,0.12);
+  padding: 0.2rem 0.55rem; border-radius: 20px;
+}
+.pd-meta .pd-role { margin-left: 0; }
+.gc-download { color: var(--accent); }
+.gc-download:hover { color: #bae6fd; }
 .gc-meta {
   display: flex; flex-wrap: wrap; gap: 0.4rem 1rem;
   font-size: 0.75rem; color: #8b95a7; min-height: 1.1em;

@@ -1,6 +1,7 @@
 import {
-  PROFILE, SECTIONS, projectsText, liveRepos, readme, mentionedRepos, rateLimited, callGroq,
+  PROFILE, SECTIONS, projectsText, liveRepos, readme, mentionedRepos, hasAbout, rateLimited, callGroq,
 } from './_knowledge.js'
+import { latestQuillwave } from './_releases.js'
 
 /*
    CHAT — "Chat with me" window.
@@ -44,8 +45,9 @@ export default async function handler(req, res) {
 
   // Read what's relevant: live repo list + the README of any project being asked about
   const userTurns = history.filter(m => m.role === 'user').map(m => m.content)
-  const asked = mentionedRepos(userTurns)
-  const [repos, ...readmes] = await Promise.all([liveRepos(), ...asked.map(readme)])
+  // Projects with a curated overview (Quillwave) are already fully described in KNOWLEDGE
+  const asked = mentionedRepos(userTurns).filter(repo => !hasAbout(repo))
+  const [repos, quill, ...readmes] = await Promise.all([liveRepos(), latestQuillwave(), ...asked.map(readme)])
 
   const live = repos
     ? `LIVE GITHUB (public, non-fork repos, newest push first)\n${repos.map(r => `- ${r.name}: ${r.lang || 'n/a'}, last push ${r.pushed}, ${r.stars} star${r.stars === 1 ? '' : 's'}${r.desc ? ` — ${r.desc}` : ''}`).join('\n')}`
@@ -58,6 +60,7 @@ export default async function handler(req, res) {
     PROFILE,
     projectsText(),
     live,
+    quill ? `QUILLWAVE LATEST RELEASE: v${quill.version}, published ${quill.published?.slice(0, 10)}, Windows installer ${Math.round(quill.size / 1e6)} MB. Visitors download it with the Download button on this site (it always serves the newest release).` : '',
     docs,
     section ? `The visitor currently has this part of the site on screen — ${SECTIONS[section]}` : '',
   ].filter(Boolean).join('\n\n')

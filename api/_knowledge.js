@@ -13,7 +13,7 @@ import { PROJECTS } from '../projects.js'
 export const MODEL = 'openai/gpt-oss-120b'
 export const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
 const USER = 'jjtjtyt6644'
-const FEATURED = ['Web-Proxy', 'CompTools', 'Killswitch', 'RobloxAccountManager']
+const FEATURED = ['Quillwave', 'Web-Proxy', 'CompTools', 'Killswitch', 'RobloxAccountManager']
 
 export const PROFILE = `
 ABOUT JUNYU
@@ -23,7 +23,7 @@ ABOUT JUNYU
 - Security: interested in penetration testing and application-layer vulnerabilities; built a deliberately vulnerable practice site (SQL injection, XSS) with a SOC monitoring dashboard.
 - Networking: learnt traffic routing and packet analysis and applied it in projects such as a web proxy.
 - Development: builds full-stack tools, browser extensions and desktop apps, and integrates AI APIs.
-- Timeline (from the site's terminal): 2023 started high school and began ideating; 2024–2025 building and testing projects; 2026 earned IBM SkillsBuild badges and kept learning cyber security.
+- Timeline (from the site's terminal): 2023 started high school and began ideating; 2024–2025 building and testing projects; 2026 earned IBM SkillsBuild badges, kept learning cyber security, and became lead developer of Quillwave.
 
 CREDENTIALS (exact names; these are introductory "Fundamentals" badges, not professional certifications)
 - IBM SkillsBuild: Artificial Intelligence Fundamentals — issued 3 March 2026 (verifiable on Credly)
@@ -39,16 +39,18 @@ export const SECTIONS = {
   hero: 'Hero: "Hi, I\'m Junyu — High Schooler & Builder." A Singapore high-school student focused on cyber security, networking and open source.',
   about: 'About: three disciplines — Security (vulnerability practice, a SOC dashboard), Networking (traffic routing, a custom web proxy), Development (full-stack tools, extensions, desktop apps). Languages: JavaScript, TypeScript, Python, HTML/CSS, SQL, Bash.',
   certs: 'Certifications: two IBM SkillsBuild badges — Artificial Intelligence Fundamentals (March 2026) and Cybersecurity Fundamentals (March 2026), both verifiable on Credly.',
-  builds: 'Selected Builds: Web Proxy "Ambient" (web proxy with games/apps pages, one-click Vercel deploy), CompTools (Windows utility: hardware diagnostics, one-click winget installs, debloat and tweaks; C#/.NET), Killswitch (Electron tray app — one panic hotkey closes every running game), Roblox Account Manager (Rust app running many Roblox accounts with auto-reconnect and memory/CPU savers).',
+  builds: 'Selected Builds: Quillwave first (Junyu is the lead developer; a Windows desktop app with nearly 100 AI news sources in one ranked feed, an assistant that briefs you in a minute, and notes that sync; built with Electron, a Python scanner and Firebase; downloadable here, always the newest release), then Web Proxy "Ambient" (web proxy with games/apps pages, one-click Vercel deploy), CompTools (Windows utility: hardware diagnostics, one-click winget installs, debloat and tweaks; C#/.NET), Killswitch (Electron tray app — one panic hotkey closes every running game), Roblox Account Manager (Rust app running many Roblox accounts with auto-reconnect and memory/CPU savers).',
   gallery: 'All Projects: every public repo, synced live from GitHub — searchable, filterable by domain and language; click any card to read its README.',
   experience: 'Experience: a fake interactive terminal with a short timeline (2023 ideation, 2024–2025 building, 2026 IBM badges).',
   contact: 'Contact: email yaoprox0@gmail.com or GitHub @jjtjtyt6644; open to collaborations and security chats.',
 }
 
-const repoName = url => (url.split(`github.com/${USER}/`)[1] || '').split('/')[0]
+// "owner/name" of a project: its own `repo` field, else taken from the jjtjtyt6644 URL
+const fullRepo = p => p.repo || `${USER}/${(p.url.split(`github.com/${USER}/`)[1] || '').split('/')[0]}`
 
 // Extra words people use for each repo (matched case-insensitively against the question)
 const ALIASES = {
+  'ai-news-downloader': ['quillwave', 'quill wave', 'ai pulse', 'ai news'],
   'Web-Proxy': ['proxy', 'ambient', 'web proxy', 'proxyyy'],
   Comptools: ['comptools', 'comp tools', 'comptool'],
   killswitch: ['killswitch', 'kill switch', 'panic'],
@@ -73,9 +75,16 @@ const ALIASES = {
 export function projectsText() {
   const featured = PROJECTS.filter(p => FEATURED.includes(p.name))
   const rest = PROJECTS.filter(p => !FEATURED.includes(p.name))
-  const line = p => `- ${p.name} (${p.lang}; ${p.tags.join(', ')}): ${p.desc} — ${p.url}`
-  return `FEATURED BUILDS (shown in "Selected Builds")\n${featured.map(line).join('\n')}\n\nOTHER PUBLIC PROJECTS\n${rest.map(line).join('\n')}`
+  const line = p => `- ${p.name}${p.role ? ` [Junyu's role: ${p.role}; the app's code is in a private repository, and Junyu leads its development]` : ''} (${p.lang}; ${p.tags.join(', ')}): ${p.desc} — ${p.download ? 'download on this site: the Download button always gets the newest Windows installer' : p.url}`
+  // Curated overview for projects without a public README (Quillwave)
+  const details = p => p.about
+    ? `\n  ${p.name} details:\n${p.about.map(s => `  ${s.title}: ${s.items.join(' ')}`).join('\n')}`
+    : ''
+  return `FEATURED BUILDS (shown in "Selected Builds")\n${featured.map(p => line(p) + details(p)).join('\n')}\n\nOTHER PUBLIC PROJECTS\n${rest.map(line).join('\n')}`
 }
+
+// Projects with a curated overview skip the README fetch (Quillwave's public repo is only its installer)
+export const hasAbout = repo => PROJECTS.some(p => p.about && p.repo && p.repo.toLowerCase() === repo.toLowerCase())
 
 /* ─── Live GitHub reading, cached in memory between warm invocations ─── */
 const cache = new Map()
@@ -130,7 +139,7 @@ function cleanReadme(md, max = 3200) {
 export async function readme(repo) {
   try {
     return await cached(`readme:${repo}`, 60 * 60 * 1000, async () => {
-      const res = await fetchWithTimeout(`https://api.github.com/repos/${USER}/${repo}/readme`, { headers: ghHeaders('application/vnd.github.raw') })
+      const res = await fetchWithTimeout(`https://api.github.com/repos/${repo}/readme`, { headers: ghHeaders('application/vnd.github.raw') })
       if (!res.ok) return null
       return cleanReadme(await res.text())
     })
@@ -141,12 +150,13 @@ export async function readme(repo) {
 
 // Which repos is the visitor asking about? Checks the latest question first, then the one before (follow-ups like "how does it work?")
 export function mentionedRepos(userMessages, max = 2) {
-  const repos = PROJECTS.map(p => ({ repo: repoName(p.url), name: p.name }))
+  const repos = PROJECTS.map(p => ({ repo: fullRepo(p), name: p.name }))
   const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const find = text => {
     const t = text.toLowerCase()
     return repos.filter(({ repo, name }) => {
-      const words = [name.toLowerCase(), repo.toLowerCase(), ...(ALIASES[repo] || [])]
+      const short = repo.split('/')[1]
+      const words = [name.toLowerCase(), short.toLowerCase(), ...(ALIASES[short] || [])]
       return words.some(w => new RegExp(`(^|[^a-z0-9])${escape(w)}($|[^a-z0-9])`).test(t))
     }).map(r => r.repo)
   }

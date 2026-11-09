@@ -2,6 +2,7 @@ import { gsap } from 'gsap'
 import { Flip } from 'gsap/Flip'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { PROJECTS } from './projects.js'
+import { quillwaveRelease, formatSize, timeAgo } from './releases.js'
 
 gsap.registerPlugin(Flip, ScrollTrigger)
 
@@ -14,7 +15,7 @@ gsap.registerPlugin(Flip, ScrollTrigger)
 */
 
 const USER = 'jjtjtyt6644'
-const CACHE_KEY = 'gh-repos-v1'
+const CACHE_KEY = 'gh-repos-v2'
 const CACHE_MS = 30 * 60 * 1000
 
 const LANG_COLORS = {
@@ -30,15 +31,14 @@ const langColor = lang => LANG_COLORS[lang] || '#64748b'
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
-// "github.com/jjtjtyt6644/Comptools/releases/latest" → "comptools"
-const repoKey = url => (url.split(`github.com/${USER}/`)[1] || '').split('/')[0].toLowerCase()
+// "owner/name" for each project: its own `repo` field, else taken from the jjtjtyt6644 URL
+// ("github.com/jjtjtyt6644/Comptools/releases/latest" → "jjtjtyt6644/Comptools")
+const fullRepo = p => p.repo || `${USER}/${(p.url.split(`github.com/${USER}/`)[1] || '').split('/')[0]}`
 
-function timeAgo(iso) {
-  const s = (Date.now() - new Date(iso).getTime()) / 1000
-  const units = [['y', 31536000], ['mo', 2592000], ['w', 604800], ['d', 86400], ['h', 3600], ['m', 60]]
-  for (const [u, n] of units) if (s >= n) return `${Math.floor(s / n)}${u} ago`
-  return 'just now'
-}
+const toStats = r => ({
+  full: r.full_name.toLowerCase(), stars: r.stargazers_count, forks: r.forks_count,
+  pushed: r.pushed_at, topics: r.topics || [], lang: r.language,
+})
 
 async function loadRepos() {
   try {
@@ -47,10 +47,12 @@ async function loadRepos() {
   } catch { /* storage unavailable */ }
   const res = await fetch(`https://api.github.com/users/${USER}/repos?per_page=100&sort=pushed`)
   if (!res.ok) throw new Error(`GitHub ${res.status}`)
-  const repos = (await res.json()).map(r => ({
-    name: r.name, stars: r.stargazers_count, forks: r.forks_count,
-    pushed: r.pushed_at, topics: r.topics || [], lang: r.language,
-  }))
+  const repos = (await res.json()).map(toStats)
+  // Projects Junyu leads that live under other accounts (e.g. Quillwave)
+  const external = PROJECTS.filter(p => p.repo && !p.repo.toLowerCase().startsWith(`${USER.toLowerCase()}/`))
+  const extra = await Promise.all(external.map(p =>
+    fetch(`https://api.github.com/repos/${p.repo}`).then(r => (r.ok ? r.json() : null)).catch(() => null)))
+  extra.filter(Boolean).forEach(r => repos.push(toStats(r)))
   try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), repos })) } catch { /* ignore */ }
   return repos
 }
@@ -67,7 +69,14 @@ export function initGallery({ lenis }) {
   const empty = document.getElementById('gallery-empty')
   const follower = document.querySelector('.cursor-follower')
 
-  const projects = PROJECTS.map((p, i) => ({ ...p, key: repoKey(p.url), order: i, stars: 0, pushed: null, topics: [] }))
+  const projects = PROJECTS.map((p, i) => ({ ...p, full: fullRepo(p), order: i, stars: 0, pushed: null, topics: [] }))
+
+  const DL_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+  const GH_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
+  // Download projects (Quillwave) get a download link instead of a GitHub link
+  const cardLink = p => p.download
+    ? `<a href="${esc(p.download)}" rel="nofollow" class="gc-link gc-download">${DL_ICON}<span>Download</span></a>`
+    : `<a href="${esc(p.url)}" target="_blank" rel="noopener" class="gc-link">${GH_ICON}GitHub</a>`
   const state = { q: '', filter: 'all', lang: null, sort: 'updated' }
 
   /* ─── Cards ─── */
@@ -82,15 +91,12 @@ export function initGallery({ lenis }) {
         <div class="gc-icon" aria-hidden="true">${esc(p.icon)}</div>
         <span class="gc-lang"><i style="background:${langColor(p.lang)}"></i>${esc(p.lang)}</span>
       </div>
-      <h3 class="gc-title">${esc(p.name)}</h3>
+      <h3 class="gc-title">${esc(p.name)}${p.role ? ` <span class="gc-role">${esc(p.role)}</span>` : ''}</h3>
       <p class="gc-desc">${esc(p.desc)}</p>
       <div class="gc-meta" aria-live="off"></div>
       <div class="gc-footer">
         <div class="gc-tags">${p.tags.map(t => `<span class="gc-tag">${esc(t)}</span>`).join('')}</div>
-        <a href="${esc(p.url)}" target="_blank" rel="noopener" class="gc-link">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          GitHub
-        </a>
+        ${cardLink(p)}
       </div>`
     card.querySelector('.gc-hit').addEventListener('click', () => openProject(p))
     p.el = card
@@ -215,12 +221,20 @@ export function initGallery({ lenis }) {
   /* ─── Live GitHub stats ─── */
   function renderMeta(p) {
     const meta = p.el.querySelector('.gc-meta')
-    if (!p.pushed) { meta.innerHTML = ''; return }
+    if (!p.pushed && !p.release) { meta.innerHTML = ''; return }
     meta.innerHTML = `
-      <span title="Last pushed ${esc(new Date(p.pushed).toLocaleString())}"><i class="gc-pulse"></i>Updated ${esc(timeAgo(p.pushed))}</span>
-      <span title="Stars">★ ${p.stars}</span>
+      ${p.pushed ? `<span title="Last pushed ${esc(new Date(p.pushed).toLocaleString())}"><i class="gc-pulse"></i>Updated ${esc(timeAgo(p.pushed))}</span>` : ''}
+      ${p.release ? `<span title="Newest release">v${esc(p.release.version)} · ${esc(formatSize(p.release.size))}</span>` : `<span title="Stars">★ ${p.stars}</span>`}
       ${p.forks ? `<span title="Forks">⑂ ${p.forks}</span>` : ''}`
   }
+
+  // Newest Quillwave release shown on its card (version + installer size)
+  quillwaveRelease.then(info => {
+    const q = info && projects.find(p => p.download === '/api/quillwave')
+    if (!q) return
+    q.release = info
+    renderMeta(q)
+  })
 
   ScrollTrigger.create({
     trigger: '#gallery',
@@ -229,9 +243,9 @@ export function initGallery({ lenis }) {
     onEnter: () => {
       status.textContent = 'Syncing with GitHub…'
       loadRepos().then(repos => {
-        const byName = new Map(repos.map(r => [r.name.toLowerCase(), r]))
+        const byRepo = new Map(repos.map(r => [r.full, r]))
         projects.forEach(p => {
-          const r = byName.get(p.key)
+          const r = byRepo.get(p.full.toLowerCase())
           if (!r) return
           Object.assign(p, { stars: r.stars, forks: r.forks, pushed: r.pushed, topics: r.topics })
           renderMeta(p)
@@ -274,25 +288,47 @@ export function initGallery({ lenis }) {
     document.getElementById('pd-title').textContent = p.name
     document.getElementById('pd-desc').textContent = p.desc
     document.getElementById('pd-meta').innerHTML = [
+      p.role ? `<span class="pd-tag pd-role">${esc(p.role)}</span>` : '',
       `<span><i style="background:${langColor(p.lang)}"></i>${esc(p.lang)}</span>`,
+      p.release ? `<span>Latest v${esc(p.release.version)}</span>` : '',
       p.pushed ? `<span>Updated ${esc(timeAgo(p.pushed))}</span>` : '',
-      p.pushed ? `<span>★ ${p.stars}</span>` : '',
+      p.pushed && !p.download ? `<span>★ ${p.stars}</span>` : '',
       ...p.tags.map(t => `<span class="pd-tag">${esc(t)}</span>`),
       ...p.topics.filter(t => !p.tags.includes(t)).map(t => `<span class="pd-tag">${esc(t)}</span>`),
     ].join('')
     const gh = document.getElementById('pd-github')
-    gh.href = p.url
     const cloneBtn = document.getElementById('pd-clone')
-    const repoName = p.url.split(`github.com/${USER}/`)[1].split('/')[0]
-    cloneBtn.dataset.cmd = `git clone https://github.com/${USER}/${repoName}.git`
-    cloneBtn.textContent = 'Copy clone command'
+    if (p.download) {
+      // Download-only projects: newest installer instead of a GitHub link, no clone command
+      gh.href = p.download
+      gh.removeAttribute('target')
+      gh.textContent = p.release ? `Download v${p.release.version} for Windows →` : 'Download for Windows →'
+      cloneBtn.hidden = true
+    } else {
+      gh.href = p.url
+      gh.target = '_blank'
+      gh.textContent = 'Open on GitHub →'
+      cloneBtn.hidden = false
+      cloneBtn.dataset.cmd = `git clone https://github.com/${p.full}.git`
+      cloneBtn.textContent = 'Copy clone command'
+    }
 
     drawer.hidden = false
     requestAnimationFrame(() => drawer.classList.add('open'))
     lenis?.stop()
     drawerBody.scrollTop = 0
     closeBtn.focus()
-    loadReadme(repoName)
+    const label = drawer.querySelector('.pd-readme-label')
+    if (p.about) {
+      // Curated overview (e.g. Quillwave, whose app repo is private) instead of a README
+      label.textContent = 'About the app'
+      readme.innerHTML = p.about.map(sec => `
+        <h3>${esc(sec.title)}</h3>
+        <ul>${sec.items.map(item => `<li>${esc(item)}</li>`).join('')}</ul>`).join('')
+    } else {
+      label.textContent = 'README · live from GitHub'
+      loadReadme(p.full)
+    }
   }
 
   async function loadReadme(repoName) {
@@ -300,7 +336,7 @@ export function initGallery({ lenis }) {
     try {
       let html = readmeCache.get(repoName)
       if (!html) {
-        const res = await fetch(`https://api.github.com/repos/${USER}/${repoName}/readme`, {
+        const res = await fetch(`https://api.github.com/repos/${repoName}/readme`, {
           headers: { Accept: 'application/vnd.github.html+json' },
         })
         if (!res.ok) throw new Error(`GitHub ${res.status}`)
@@ -311,8 +347,8 @@ export function initGallery({ lenis }) {
       readme.innerHTML = html
       // README paths like "docs/shot.png" are relative to the repo, not to this site
       const isRelative = v => v && !/^([a-z][a-z0-9+.-]*:|\/\/|#)/i.test(v)
-      const rawBase = `https://raw.githubusercontent.com/${USER}/${repoName}/HEAD/`
-      const blobBase = `https://github.com/${USER}/${repoName}/blob/HEAD/`
+      const rawBase = `https://raw.githubusercontent.com/${repoName}/HEAD/`
+      const blobBase = `https://github.com/${repoName}/blob/HEAD/`
       readme.querySelectorAll('img').forEach(img => {
         const src = img.getAttribute('src')
         if (isRelative(src)) img.src = new URL(src.replace(/^\.?\//, ''), rawBase).href

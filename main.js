@@ -3,14 +3,17 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { initGallery } from './gallery.js'
 import { initPalette } from './palette.js'
+import { quillwaveRelease, formatSize, timeAgo } from './releases.js'
+import { PROJECTS } from './projects.js'
 
 gsap.registerPlugin(ScrollTrigger)
 
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const lenis = new Lenis({
   duration: 1.6,
   easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-  smooth: true,
+  smoothWheel: !reduceMotion, // native scrolling for visitors who ask for less motion
   smoothTouch: false,
 })
 lenis.on('scroll', ScrollTrigger.update)
@@ -53,7 +56,8 @@ lenis.on('scroll', ({ scroll, limit }) => {
 
 
 gsap.timeline({ defaults: { ease: 'expo.out' } })
-  .from('.hero-badge', { y: -30, opacity: 0, duration: 1.2, delay: 0.2 })
+  // fromTo: the badge starts at opacity 0 in CSS, so a plain .from() would animate 0 → 0
+  .fromTo('.hero-badge', { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 1.2, delay: 0.2 })
   .from('.hero .line', { y: '110%', rotationZ: 3, opacity: 0, duration: 1.6, stagger: 0.12 }, '-=0.8')
   .from('.hero-sub', { opacity: 0, letterSpacing: '10px', duration: 1.2 }, '-=0.8')
   .to('.hero-scroll', { opacity: 1, duration: 0.6 }, '-=0.4')
@@ -65,6 +69,12 @@ gsap.from('.about .eyebrow', {
   scrollTrigger: { trigger: '.about', start: 'top 80%' }
 })
 
+
+// Keep the About stats truthful: project count comes from the same list as the gallery
+const statProjects = document.getElementById('stat-projects')
+if (statProjects) statProjects.dataset.target = String(PROJECTS.length)
+const footerYear = document.getElementById('footer-year')
+if (footerYear) footerYear.textContent = String(new Date().getFullYear())
 
 document.querySelectorAll('.stat-num').forEach(el => {
   const target = parseInt(el.dataset.target, 10)
@@ -121,6 +131,8 @@ gsap.to('.cert-card', {
 
 
 const cards = gsap.utils.toArray('.build-card')
+// One screen of scrolling per card, plus one for the last card to settle
+const buildsScrollLength = () => window.innerHeight * (cards.length + 1)
 
 
 gsap.set(cards, { autoAlpha: 0 })
@@ -129,7 +141,7 @@ const masterTl = gsap.timeline({
   scrollTrigger: {
     trigger: '.builds-section',
     start: 'top top',
-    end: () => `+=${window.innerHeight * 5}`,
+    end: () => `+=${buildsScrollLength()}`,
     pin: true,
     scrub: 1,
   }
@@ -192,15 +204,17 @@ cards.forEach((card, i) => {
   if (i < cards.length - 1) {
     const outTl = gsap.timeline()
 
-    if (i === 0) {
+    // Exit styles cycle so any number of cards gets a proper transition
+    const exitStyle = i % 3
+    if (exitStyle === 0) {
       outTl.to(imgWrap, { y: -70, opacity: 0, duration: 0.8, ease: 'power3.in' })
       outTl.to(titles, { y: '-130%', duration: 0.6, stagger: 0.06, ease: 'power3.in' }, '<')
       outTl.to(meta, { opacity: 0, duration: 0.3 }, '<')
-    } else if (i === 1) {
+    } else if (exitStyle === 1) {
       outTl.to(imgWrap, { x: '-55%', scale: 0.6, opacity: 0, duration: 0.8, ease: 'expo.in' })
       outTl.to(titles, { opacity: 0, x: -35, duration: 0.5, stagger: 0.06, ease: 'expo.in' }, '<')
       outTl.to(meta, { opacity: 0, duration: 0.3 }, '<')
-    } else if (i === 2) {
+    } else {
       outTl.to(imgWrap, { rotationX: 45, opacity: 0, scale: 0.8, duration: 0.8, ease: 'power2.in' })
       outTl.to(titles, { opacity: 0, y: -45, filter: 'blur(10px)', duration: 0.6, stagger: 0.06, ease: 'power2.in' }, '<')
       outTl.to(meta, { opacity: 0, duration: 0.3 }, '<')
@@ -245,12 +259,24 @@ const modalDesc = document.getElementById('modal-desc')
 const modalTags = document.getElementById('modal-tags')
 const modalLink = document.getElementById('modal-link')
 
+// Live "newest release" labels for Quillwave (the links themselves always resolve server-side)
+const releaseInfo = {}
+quillwaveRelease.then(info => {
+  if (!info) return
+  releaseInfo.quillwave = info
+  document.querySelectorAll('[data-release-label="quillwave"] .download-label')
+    .forEach(el => { el.textContent = `Download v${info.version}` })
+  document.querySelectorAll('[data-release-meta="quillwave"]')
+    .forEach(el => { el.textContent = `v${info.version} · updated ${timeAgo(info.published)} · Windows 10/11 · ${formatSize(info.size)}` })
+})
+
 function openModal(card) {
   const title = card.dataset.title
   const desc = card.dataset.desc
 
   const imgElement = card.querySelector('.build-image-wrapper img')
   const img = imgElement ? imgElement.src : card.dataset.img
+  const download = card.dataset.download
   const github = card.dataset.github
   const tags = (card.dataset.tags || '').split(',').map(t => t.trim()).filter(Boolean)
 
@@ -260,7 +286,11 @@ function openModal(card) {
   modalImg.parentElement.classList.toggle('is-icon', isIcon)
   modalTitle.textContent = title
   modalDesc.textContent = desc
-  modalLink.href = github
+  // Projects with a download (Quillwave) link to the newest installer instead of GitHub
+  modalLink.href = download || github
+  modalLink.textContent = download ? `Download ${releaseInfo.quillwave ? `v${releaseInfo.quillwave.version} ` : ''}for Windows →` : 'View on GitHub →'
+  if (download) modalLink.removeAttribute('target')
+  else modalLink.target = '_blank'
 
   modalTags.innerHTML = tags.map(t => `<span>${t}</span>`).join('')
 
@@ -371,7 +401,7 @@ const FALLBACK_LINES = {
   hero: "Junyu is a Singapore high-schooler building in cyber security, networking and open source.",
   about: "Security, networking and development: the three things Junyu builds around.",
   certs: "Two IBM SkillsBuild badges, AI and Cybersecurity Fundamentals. Both are verifiable on Credly.",
-  builds: "Four featured builds: a web proxy, CompTools, Killswitch and a Roblox account manager.",
+  builds: "Up first: Quillwave, the AI news app Junyu leads. Then a web proxy, CompTools, Killswitch and a Roblox account manager.",
   gallery: "Every public repo, live from GitHub. Click a card to read its README 📂",
   contact: "Want to reach Junyu? Email or GitHub, right here.",
 }
@@ -861,7 +891,7 @@ function setupInteractiveTerminal(termBody, cursor) {
     '~': {
       type: 'dir',
       contents: {
-        'experience.timeline': { type: 'file', content: "2025: Built Portfolio<br/>2024: IBM Certified AI & Cyber Security<br/>2023: Began journey into networking and pentesting." },
+        'experience.timeline': { type: 'file', content: "2026: IBM SkillsBuild badges (AI &amp; Cybersecurity Fundamentals), leading Quillwave<br/>2024-2025: Building and testing projects<br/>2023: High school, ideation, first steps into networking and pentesting" },
         'run_next_module.sh': { type: 'file', content: "[OK] Initiating module...<br/>[OK] Bypassing mainframe...<br/>[OK] Payload injected successfully.<br/><span style=\"color:#a78bfa; font-weight:bold;\">Welcome to the next level.</span>", exec: true },
         'about.txt': { type: 'file', content: "Hi, I'm Junyu - Cyber Security & Networking Enthusiast.<br/>Contact: yaoprox0@gmail.com<br/>GitHub: jjtjtyt6644" },
         'secrets': {
@@ -922,9 +952,12 @@ function setupInteractiveTerminal(termBody, cursor) {
         out.className = 'term-line';
         out.style.opacity = 1;
 
-        const args = val.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || [];
+        // Escape once at parse time: every message below goes into innerHTML,
+        // so typed input like <img onerror=...> must never become markup
+        const escHtml = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        const args = (val.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || []).map(escHtml);
         const cmd = args[0].toLowerCase();
-        const parsedArgs = args.slice(1).map(a => a.replace(/^["']|["']$/g, ''));
+        const parsedArgs = args.slice(1).map(a => a.replace(/^(["']|&quot;|&#39;)|(["']|&quot;|&#39;)$/g, ''));
 
         let outputStr = '';
 
@@ -1052,8 +1085,12 @@ function setupInteractiveTerminal(termBody, cursor) {
             outputStr = vfs['~'].contents['run_next_module.sh'].content;
             break;
           case 'matrix':
-            termBody.innerHTML = '<canvas id="matrix-canvas"></canvas>';
-            startMatrixRain('matrix-canvas', termBody);
+            {
+              // Pass the element itself: an id would collide with the page-wide #matrix-canvas overlay
+              const rainCanvas = document.createElement('canvas');
+              termBody.replaceChildren(rainCanvas);
+              startMatrixRain(rainCanvas, termBody);
+            }
             return;
           default:
             outputStr = `bash: ${cmd}: command not found`;
@@ -1180,8 +1217,7 @@ document.addEventListener('keydown', function (e) {
 /* ═══════════════════════════════════════════════════════════════
    MATRIX RAIN TERMINAL LOGIC
 ═══════════════════════════════════════════════════════════════ */
-function startMatrixRain(canvasId, container) {
-  const canvas = document.getElementById(canvasId);
+function startMatrixRain(canvas, container) {
   const ctx = canvas.getContext('2d');
 
   canvas.width = container.clientWidth;
@@ -1262,7 +1298,8 @@ function startMatrixRain(canvasId, container) {
 
 
   function handleGlobalKey(e) {
-    if (e.key === 'c' && e.ctrlKey) {
+    // Only when nothing is selected, so Ctrl+C still copies text elsewhere on the page
+    if (e.key === 'c' && e.ctrlKey && !String(window.getSelection())) {
       destroyMatrix();
     }
   }
@@ -1307,10 +1344,10 @@ function setActiveDot(index) {
 ScrollTrigger.create({
   trigger: '.builds-section',
   start: 'top top',
-  end: () => `+=${window.innerHeight * 5}`,
+  end: () => `+=${buildsScrollLength()}`,
   scrub: true,
   onUpdate: (self) => {
-    const idx = Math.min(Math.floor(self.progress * 4), 3)
+    const idx = Math.min(Math.floor(self.progress * cards.length), cards.length - 1)
     setActiveDot(idx)
   }
 })

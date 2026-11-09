@@ -32,11 +32,12 @@ export const KEYS = [
   { sec: 'certs', vh: 0.6, cam: [36, 12, -92], look: [0, 8, -60], fov: 45, exp: 0.6, brk: 1, rise: 0.1, col: 0, hue: 1, flare: 1, lb: 0 },
 
   // SC.04 — The avenue: drop to street level, towers rise, track down the avenue
+  // (Builds pins for one screen per card + 1, i.e. 6 screens for the 5 featured builds)
   { sec: 'builds', vh: 0, cam: [0, 3, -102], look: [0, 5, -150], fov: 52, exp: 0.95, brk: 1, rise: 0.35, col: 0, hue: 0.3, flare: 0, lb: 0, ease: 'power2.inOut' },
-  { sec: 'builds', vh: 1.25, cam: [-3, 2.6, -138], look: [1, 6, -185], fov: 52, exp: 0.95, brk: 1, rise: 0.8, col: 0, hue: 0.2, flare: 0, lb: 0, ease: 'none' },
-  { sec: 'builds', vh: 2.5, cam: [3, 3.2, -172], look: [-1, 7, -220], fov: 52, exp: 0.95, brk: 1, rise: 1, col: 0, hue: 0.45, flare: 0, lb: 0, ease: 'none' },
-  { sec: 'builds', vh: 3.75, cam: [-2, 5, -206], look: [0, 8, -250], fov: 52, exp: 0.95, brk: 1, rise: 1, col: 0, hue: 0.7, flare: 0, lb: 0, ease: 'none' },
-  { sec: 'builds', vh: 5, cam: [0, 14, -236], look: [0, 5, -285], fov: 52, exp: 0.9, brk: 1, rise: 1, col: 0, hue: 0.5, flare: 0, lb: 0 },
+  { sec: 'builds', vh: 1.5, cam: [-3, 2.6, -138], look: [1, 6, -185], fov: 52, exp: 0.95, brk: 1, rise: 0.8, col: 0, hue: 0.2, flare: 0, lb: 0, ease: 'none' },
+  { sec: 'builds', vh: 3, cam: [3, 3.2, -172], look: [-1, 7, -220], fov: 52, exp: 0.95, brk: 1, rise: 1, col: 0, hue: 0.45, flare: 0, lb: 0, ease: 'none' },
+  { sec: 'builds', vh: 4.5, cam: [-2, 5, -206], look: [0, 8, -250], fov: 52, exp: 0.95, brk: 1, rise: 1, col: 0, hue: 0.7, flare: 0, lb: 0, ease: 'none' },
+  { sec: 'builds', vh: 6, cam: [0, 14, -236], look: [0, 5, -285], fov: 52, exp: 0.9, brk: 1, rise: 1, col: 0, hue: 0.5, flare: 0, lb: 0 },
 
   // SC.05 — Aerial: crane up over the city
   { sec: 'gallery', vh: 0, cam: [0, 112, -168], look: [0, 0, -186], fov: 50, exp: 0.42, brk: 1, rise: 1, col: 0, hue: 0.35, flare: 0, lb: 0 },

@@ -1,6 +1,49 @@
 /* All public projects shown in the gallery and the command palette.
-   Live stats (stars, last push) are merged in from the GitHub API at runtime (gallery.js). */
+   Live stats (stars, last push) are merged in from the GitHub API at runtime (gallery.js).
+   Optional fields:
+     repo      "owner/name" when the repo lives outside jjtjtyt6644 (used for live data + README)
+     download  link visitors get instead of GitHub (Quillwave: always the newest installer)
+     role      Junyu's role when it isn't his own repo */
 export const PROJECTS = [
+  {
+    name: 'Quillwave',
+    desc: 'All your AI news in one sitting: nearly 100 sources in one ranked feed, an assistant that briefs you in a minute, and notes that keep up with you. A Windows desktop app built with Electron, a Python news scanner and a Firebase backend.',
+    lang: 'JavaScript',
+    tags: ['ai', 'tools'],
+    icon: '🪶',
+    repo: 'stephanieloveshotpot/ai-news-downloader', // public installer repo: live release data only
+    download: '/api/quillwave',
+    role: 'Lead developer',
+    url: '/api/quillwave',
+    // Shown in the project panel instead of a README (the app's own repo is private)
+    about: [
+      { title: 'Read', items: [
+        'Nearly 100 sources in five groups: Hacker News, arXiv (cs.AI, cs.LG, cs.CL), AI lab and company blogs, the tech press, and the community (newsletters, researchers’ blogs, AI subreddits).',
+        'A ranked “For you” feed, plus Everything, Unread, Since last visit, Bookmarks and Notes. The same story from several sources shows as one row.',
+        'A clean full-article reader with reading time and progress; arXiv papers open as full text. Live scans on your schedule, with search, sorting and muted topics.',
+      ] },
+      { title: 'Ask', items: [
+        'An assistant that searches your feed, reads full articles and answers with links to the stories it used.',
+        '“Brief me” sums up the day’s AI news in about a minute; “Key points” works on any story or a selected passage. It can read your notes too.',
+        'The assistant runs through Quillwave’s own server, so the app itself contains no AI keys.',
+      ] },
+      { title: 'Keep', items: [
+        'Notes beside the article with live formatting, #tags, templates and Markdown export (for Obsidian or Notion), synced to your account.',
+        'Highlights in articles and notes, bookmarks, a reading streak with a weekly goal, and share cards.',
+        'Notifications for big stories, keyword alerts and a morning digest; light, dark and high-contrast themes; full keyboard shortcuts.',
+      ] },
+      { title: 'How it’s built', items: [
+        'Electron app (main process, a narrow preload bridge and a plain HTML/CSS/JS interface) with the assistant’s tools, article extraction and a self-updater.',
+        'A Python news scanner compiled into its own quillwave-scanner.exe; the app runs it and reads the JSON it prints.',
+        'Website and API on Firebase (Hosting, Cloud Functions, Firestore) for accounts, the assistant and sync.',
+        'A custom C# / WPF installer that installs per-user without admin rights and updates the app automatically, verifying each download.',
+      ] },
+      { title: 'Get it', items: [
+        'Free for Windows 10 and 11 (64-bit). The open beta runs until 16 Nov 2026. The Download button always fetches the newest release.',
+        'The installer isn’t code-signed yet: if Windows SmartScreen warns, choose More info, then Run anyway.',
+      ] },
+    ],
+  },
   {
     name: 'RobloxAccountManager',
     desc: 'Runs several Roblox accounts side by side from one small Windows app, with auto-reconnect, memory and CPU savers for background windows, performance profiles and self-updates. About 3 MB of RAM when minimised.',
