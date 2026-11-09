@@ -3,6 +3,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { KEYS, SECTIONS, pose } from './shots.js'
 
 gsap.registerPlugin(ScrollTrigger)
+// Mobile browsers resize the viewport when the address bar shows/hides; don't re-measure for that
+ScrollTrigger.config({ ignoreMobileResize: true })
 
 /*
    DIRECTOR — binds the page's scroll position to the film.
@@ -10,9 +12,15 @@ gsap.registerPlugin(ScrollTrigger)
    One paused GSAP timeline whose time unit is scroll pixels: each keyframe in
    shots.js is placed at its section's real scroll offset (measured by
    ScrollTrigger, so the pinned Builds section's extra length is included).
-   Scrolling eases a playhead towards the current scroll position, which gives
-   the camera a little dolly inertia on top of Lenis.
+
+   Every frame the playhead eases toward the current scroll position, which gives
+   the camera a little dolly inertia on top of Lenis. While ScrollTrigger is
+   re-measuring the page (resize, DevTools opening, content changing height) it
+   briefly reports a scroll of 0, so the playhead holds still and then snaps to
+   the true position once measuring is done — the film never rewinds to the start.
 */
+const FOLLOW = 5.5 // higher = camera catches up with the scroll faster
+
 export function createDirector({ reduced }) {
   const rig = pose(KEYS[0])
   const play = { t: 0 }
@@ -26,6 +34,7 @@ export function createDirector({ reduced }) {
   })
 
   let tl = null
+  let refreshing = false
 
   function rebuild() {
     const vh = window.innerHeight
@@ -51,16 +60,16 @@ export function createDirector({ reduced }) {
         immediateRender: false,
       }, at[i - 1])
     }
+    // Section positions just changed, so old playhead pixels mean something else now:
+    // jump straight to where the page really is instead of easing from a stale value.
+    play.t = window.scrollY
     tl.time(Math.min(play.t, tl.duration()))
   }
 
-  ScrollTrigger.addEventListener('refresh', rebuild)
-  ScrollTrigger.create({
-    start: 0,
-    end: 'max',
-    onUpdate: self => {
-      gsap.to(play, { t: self.scroll(), duration: 1.1, ease: 'power3.out', overwrite: true })
-    },
+  ScrollTrigger.addEventListener('refreshInit', () => { refreshing = true })
+  ScrollTrigger.addEventListener('refresh', () => {
+    refreshing = false
+    rebuild()
   })
 
   play.t = window.scrollY
@@ -68,8 +77,14 @@ export function createDirector({ reduced }) {
 
   return {
     rig,
-    update() {
-      if (tl) tl.time(Math.min(play.t, tl.duration()))
+    update(dt = 1 / 60) {
+      if (!tl || refreshing) return
+      const target = Math.min(window.scrollY, tl.duration())
+      // Frame-rate independent easing; long pauses (tab hidden) simply snap
+      const k = dt > 0.5 ? 1 : 1 - Math.exp(-dt * FOLLOW)
+      play.t += (target - play.t) * k
+      if (Math.abs(target - play.t) < 0.5) play.t = target
+      tl.time(play.t)
     },
   }
 }

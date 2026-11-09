@@ -49,7 +49,8 @@ export function initStage(canvas) {
     return null
   }
 
-  let dpr = Math.min(window.devicePixelRatio || 1, lite ? 1.25 : 1.75)
+  const maxDpr = Math.min(window.devicePixelRatio || 1, lite ? 1.25 : 1.75)
+  let dpr = maxDpr
   renderer.setPixelRatio(dpr)
   renderer.setSize(window.innerWidth, window.innerHeight, false)
   renderer.toneMapping = ACESFilmicToneMapping
@@ -161,17 +162,24 @@ export function initStage(canvas) {
     if (document.hidden) return
     u.uTime.value = time
     film.uniforms.uTime.value = time
-    director.update()
+    director.update(deltaMs / 1000)
     apply(time)
     composer.render()
 
-    // Adaptive quality: step the pixel ratio down if frames run long
+    // Adaptive quality: lower the pixel ratio while frames run long, and raise it back
+    // once they're fast again (a slow moment, like DevTools opening, shouldn't leave the
+    // scene blurry for good). One-off long frames after a hidden tab are ignored.
+    if (deltaMs > 250) return
     ema = ema * 0.95 + deltaMs * 0.05
     since += deltaMs
-    if (since > 2500 && ema > 24 && dpr > 0.8) {
+    if (since < 2500) return
+    if (ema > 24 && dpr > 0.8) {
       setDpr(Math.max(0.75, dpr - 0.25))
       since = 0
       ema = 16
+    } else if (ema < 14 && dpr < maxDpr) {
+      setDpr(Math.min(maxDpr, dpr + 0.25))
+      since = 0
     }
   }
 

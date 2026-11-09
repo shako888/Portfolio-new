@@ -39,7 +39,7 @@ export const SECTIONS = {
   hero: 'Hero: "Hi, I\'m Junyu — High Schooler & Builder." A Singapore high-school student focused on cyber security, networking and open source.',
   about: 'About: three disciplines — Security (vulnerability practice, a SOC dashboard), Networking (traffic routing, a custom web proxy), Development (full-stack tools, extensions, desktop apps). Languages: JavaScript, TypeScript, Python, HTML/CSS, SQL, Bash.',
   certs: 'Certifications: two IBM SkillsBuild badges — Artificial Intelligence Fundamentals (March 2026) and Cybersecurity Fundamentals (March 2026), both verifiable on Credly.',
-  builds: 'Selected Builds: Quillwave first (Junyu is the lead developer; a Windows desktop app with nearly 100 AI news sources in one ranked feed, an assistant that briefs you in a minute, and notes that sync; built with Electron, a Python scanner and Firebase; downloadable here, always the newest release), then Web Proxy "Ambient" (web proxy with games/apps pages, one-click Vercel deploy), CompTools (Windows utility: hardware diagnostics, one-click winget installs, debloat and tweaks; C#/.NET), Killswitch (Electron tray app — one panic hotkey closes every running game), Roblox Account Manager (Rust app running many Roblox accounts with auto-reconnect and memory/CPU savers).',
+  builds: 'Selected Builds: Quillwave first (Junyu is the lead developer; a Windows desktop app with nearly 100 AI news sources in one ranked feed, an assistant that briefs you in a minute, and notes that sync; built with Electron, a Python scanner and Firebase; website: quillwave-app.web.app), then Web Proxy "Ambient" (web proxy with games/apps pages, one-click Vercel deploy), CompTools (Windows utility: hardware diagnostics, one-click winget installs, debloat and tweaks; C#/.NET), Killswitch (Electron tray app — one panic hotkey closes every running game), Roblox Account Manager (Rust app running many Roblox accounts with auto-reconnect and memory/CPU savers).',
   gallery: 'All Projects: every public repo, synced live from GitHub — searchable, filterable by domain and language; click any card to read its README.',
   experience: 'Experience: a fake interactive terminal with a short timeline (2023 ideation, 2024–2025 building, 2026 IBM badges).',
   contact: 'Contact: email yaoprox0@gmail.com or GitHub @jjtjtyt6644; open to collaborations and security chats.',
@@ -75,7 +75,7 @@ const ALIASES = {
 export function projectsText() {
   const featured = PROJECTS.filter(p => FEATURED.includes(p.name))
   const rest = PROJECTS.filter(p => !FEATURED.includes(p.name))
-  const line = p => `- ${p.name}${p.role ? ` [Junyu's role: ${p.role}; the app's code is in a private repository, and Junyu leads its development]` : ''} (${p.lang}; ${p.tags.join(', ')}): ${p.desc} — ${p.download ? 'download on this site: the Download button always gets the newest Windows installer' : p.url}`
+  const line = p => `- ${p.name}${p.role ? ` [Junyu's role: ${p.role}; the app's code is in a private repository, and Junyu leads its development]` : ''} (${p.lang}; ${p.tags.join(', ')}): ${p.desc} — ${p.website || p.url}`
   // Curated overview for projects without a public README (Quillwave)
   const details = p => p.about
     ? `\n  ${p.name} details:\n${p.about.map(s => `  ${s.title}: ${s.items.join(' ')}`).join('\n')}`

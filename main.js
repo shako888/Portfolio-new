@@ -5,6 +5,7 @@ import { initGallery } from './gallery.js'
 import { initPalette } from './palette.js'
 import { quillwaveRelease, formatSize, timeAgo } from './releases.js'
 import { PROJECTS } from './projects.js'
+import { initActivity } from './activity.js'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -264,8 +265,6 @@ const releaseInfo = {}
 quillwaveRelease.then(info => {
   if (!info) return
   releaseInfo.quillwave = info
-  document.querySelectorAll('[data-release-label="quillwave"] .download-label')
-    .forEach(el => { el.textContent = `Download v${info.version}` })
   document.querySelectorAll('[data-release-meta="quillwave"]')
     .forEach(el => { el.textContent = `v${info.version} · updated ${timeAgo(info.published)} · Windows 10/11 · ${formatSize(info.size)}` })
 })
@@ -276,7 +275,7 @@ function openModal(card) {
 
   const imgElement = card.querySelector('.build-image-wrapper img')
   const img = imgElement ? imgElement.src : card.dataset.img
-  const download = card.dataset.download
+  const website = card.dataset.website
   const github = card.dataset.github
   const tags = (card.dataset.tags || '').split(',').map(t => t.trim()).filter(Boolean)
 
@@ -286,11 +285,11 @@ function openModal(card) {
   modalImg.parentElement.classList.toggle('is-icon', isIcon)
   modalTitle.textContent = title
   modalDesc.textContent = desc
-  // Projects with a download (Quillwave) link to the newest installer instead of GitHub
-  modalLink.href = download || github
-  modalLink.textContent = download ? `Download ${releaseInfo.quillwave ? `v${releaseInfo.quillwave.version} ` : ''}for Windows →` : 'View on GitHub →'
-  if (download) modalLink.removeAttribute('target')
-  else modalLink.target = '_blank'
+  // Projects with their own website (Quillwave) link there instead of GitHub
+  modalLink.href = website || github
+  modalLink.textContent = website ? 'Visit the Quillwave website →' : 'View on GitHub →'
+  modalLink.target = '_blank'
+  modalLink.rel = 'noopener'
 
   modalTags.innerHTML = tags.map(t => `<span>${t}</span>`).join('')
 
@@ -345,11 +344,11 @@ const COOLDOWN_MS = 1500
 // Arrays cycle through on each mascot click.
 const PINNED_RESPONSES = {
   experience: [
-    "This is a fake simulated terminal — not real! 😄 Try: help · ls · cat about.txt · whoami · pwd",
-    "Psst, this terminal is just for show 🖥️ Try running: ./run_next_module.sh or type matrix for a surprise!",
-    "Explore the fake filesystem! Try: cd secrets (if you dare) or cat about.txt to learn more about Junyu.",
-    "Try: sudo — see what happens when you're not in the sudoers file 👀 Or echo anything you like!",
-    "Type clear to wipe the terminal, or ls to list files. It's a playground — nothing will break 🙂"
+    "This terminal is a playground, not a real shell. Try help, ls, cat about.txt or whoami.",
+    "Try ./run_next_module.sh, or type matrix for a surprise.",
+    "There is a small filesystem to explore. cat experience.timeline shows Junyu's timeline.",
+    "Try sudo to see what happens when you're not in the sudoers file, or echo anything you like.",
+    "Type clear to wipe the terminal. Nothing here can break."
   ]
 }
 const PINNED_INDEXES = {}
@@ -402,7 +401,7 @@ const FALLBACK_LINES = {
   about: "Security, networking and development: the three things Junyu builds around.",
   certs: "Two IBM SkillsBuild badges, AI and Cybersecurity Fundamentals. Both are verifiable on Credly.",
   builds: "Up first: Quillwave, the AI news app Junyu leads. Then a web proxy, CompTools, Killswitch and a Roblox account manager.",
-  gallery: "Every public repo, live from GitHub. Click a card to read its README 📂",
+  gallery: "Every public repo, live from GitHub. Click a card to read its README.",
   contact: "Want to reach Junyu? Email or GitHub, right here.",
 }
 
@@ -487,58 +486,14 @@ lenis.on('scroll', () => {
 })
 
 
-const clickTimestamps = [];
-const MAX_CLICKS = 5;
-const BLOCK_DURATION_MS = 2 * 60 * 1000;
-let isRateLimited = false;
-
-const rateLimitOverlay = document.getElementById('rate-limit-overlay');
-document.getElementById('rate-limit-close').addEventListener('click', () => {
-  rateLimitOverlay.classList.remove('open');
-});
-
-
-const chatMsgTimestamps = [];
-const CHAT_MAX_MESSAGES = 10;
-const CHAT_WARNING_THRESHOLD = 6;
-let isChatLimited = false;
-
-const chatLimitOverlay = document.getElementById('chat-limit-overlay');
-const chatLimitModal = document.getElementById('chat-limit-modal');
-const chatLimitTitle = document.getElementById('chat-limit-title');
-const chatLimitDesc = document.getElementById('chat-limit-desc');
-const chatLimitClose = document.getElementById('chat-limit-close');
-
-chatLimitClose.addEventListener('click', () => {
-  chatLimitOverlay.classList.remove('open');
-});
-
+// Rate limits are enforced server-side (api/_knowledge.js); here we only ignore rapid repeat clicks
+const MASCOT_CLICK_COOLDOWN_MS = 2500
+let lastMascotClick = 0
 
 mascotChar.addEventListener('click', async () => {
-  if (isRateLimited) {
-    rateLimitOverlay.classList.add('open');
-    return;
-  }
-
-  const now = Date.now();
-
-  while (clickTimestamps.length > 0 && clickTimestamps[0] < now - BLOCK_DURATION_MS) {
-    clickTimestamps.shift();
-  }
-
-  clickTimestamps.push(now);
-
-  if (clickTimestamps.length > MAX_CLICKS) {
-    isRateLimited = true;
-    rateLimitOverlay.classList.add('open');
-
-
-    setTimeout(() => {
-      isRateLimited = false;
-      clickTimestamps.length = 0;
-    }, BLOCK_DURATION_MS);
-    return;
-  }
+  const now = Date.now()
+  if (now - lastMascotClick < MASCOT_CLICK_COOLDOWN_MS) return
+  lastMascotClick = now
 
 
   // Don't clear pinned sections — they should never re-fetch from the API
@@ -582,7 +537,7 @@ setTimeout(() => {
   lastSectionSwap = 0
 
 
-  CACHED_RESPONSES['hero'] = "Hi, I'm Junyu's guide! Scroll down and I'll tell you about each part of his work. Click me anytime 👋";
+  CACHED_RESPONSES['hero'] = "Hi, I'm Junyu's guide. Scroll and I'll walk you through his work, or click me anytime.";
   switchSection('hero')
 }, 2400)
 
@@ -595,6 +550,7 @@ const aiChatInput = document.getElementById('ai-chat-input')
 const aiChatSend = document.getElementById('ai-chat-send')
 
 let conversationHistory = []
+let chatBusy = false
 
 
 chatToggleBtn.addEventListener('click', () => {
@@ -687,43 +643,10 @@ async function handleChatSubmit() {
   }
 
 
-  if (isChatLimited) {
-    chatLimitOverlay.classList.add('open');
-    return;
-  }
-
-  const now = Date.now();
-
-  while (chatMsgTimestamps.length > 0 && chatMsgTimestamps[0] < now - BLOCK_DURATION_MS) {
-    chatMsgTimestamps.shift();
-  }
-
-  chatMsgTimestamps.push(now);
-  const msgCount = chatMsgTimestamps.length;
-
-
-  if (msgCount >= CHAT_MAX_MESSAGES) {
-    isChatLimited = true;
-    chatLimitTitle.textContent = "Rate Limit Exceeded";
-    chatLimitDesc.textContent = "You have been locked out of the chat for 2 minutes due to excessive messaging.";
-    chatLimitModal.className = "chat-limit-modal state-blocked";
-    chatLimitOverlay.classList.add('open');
-
-    setTimeout(() => {
-      isChatLimited = false;
-      chatMsgTimestamps.length = 0;
-    }, BLOCK_DURATION_MS);
-    return;
-  }
-
-
-  if (msgCount >= CHAT_WARNING_THRESHOLD) {
-    chatLimitTitle.textContent = "Nearing Limit";
-    chatLimitDesc.textContent = `Warning: You are approaching the message limit (${msgCount}/${CHAT_MAX_MESSAGES}). Please slow down.`;
-    chatLimitModal.className = "chat-limit-modal state-warning";
-    chatLimitOverlay.classList.add('open');
-  }
-
+  // One question at a time; the server answers "slow down" itself if someone floods it
+  if (chatBusy) return
+  chatBusy = true
+  aiChatSend.disabled = true
 
   appendMessage('user', text)
   conversationHistory.push({ role: 'user', content: text })
@@ -732,7 +655,7 @@ async function handleChatSubmit() {
 
   const loadingDiv = document.createElement('div')
   loadingDiv.className = 'chat-message ai-message'
-  loadingDiv.textContent = 'Thinking...'
+  loadingDiv.textContent = 'Reading Junyu’s projects…'
   aiChatMessages.appendChild(loadingDiv)
   aiChatMessages.scrollTop = aiChatMessages.scrollHeight
 
@@ -760,6 +683,8 @@ async function handleChatSubmit() {
 
 
   loadingDiv.remove()
+  chatBusy = false
+  aiChatSend.disabled = false
   appendMessage('ai', responseText)
   // Don't feed error messages back to the model as if it had said them
   if (failed) conversationHistory.pop()
@@ -1141,6 +1066,7 @@ if (stageCanvas) {
    ALL PROJECTS GALLERY + COMMAND PALETTE (gallery.js, palette.js)
 ═══════════════════════════════════════════════════════════════ */
 const gallery = initGallery({ lenis })
+initActivity()
 
 initPalette({
   lenis,
@@ -1150,7 +1076,7 @@ initPalette({
     {
       label: 'Copy email address', hint: 'yaoprox0@gmail.com',
       run: () => navigator.clipboard?.writeText('yaoprox0@gmail.com')
-        .then(() => typeText('Email copied to your clipboard 📋'))
+        .then(() => typeText('Email copied to your clipboard.'))
         .catch(() => { window.location.href = 'mailto:yaoprox0@gmail.com' }),
     },
     { label: 'Open GitHub profile', hint: 'github.com/jjtjtyt6644', run: () => window.open('https://github.com/jjtjtyt6644', '_blank', 'noopener') },
@@ -1161,30 +1087,28 @@ initPalette({
 })
 
 /* ═══════════════════════════════════════════════════════════════
-   DECRYPT CONTACT EMAIL
+   CONTACT — copy email in one click (falls back to opening the mail app)
 ═══════════════════════════════════════════════════════════════ */
-const emailBtn = document.getElementById('btn-email');
-if (emailBtn) {
-  emailBtn.addEventListener('click', (e) => {
-    if (!emailBtn.classList.contains('decrypted')) {
-      e.preventDefault();
-      const realEmail = emailBtn.getAttribute('data-email');
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
-      let iterations = 0;
-      const interval = setInterval(() => {
-        emailBtn.textContent = realEmail.split('').map((letter, index) => {
-          if (index < iterations) return realEmail[index];
-          return chars[Math.floor(Math.random() * chars.length)];
-        }).join('');
-        if (iterations >= realEmail.length) {
-          clearInterval(interval);
-          emailBtn.classList.add('decrypted');
-          emailBtn.href = `mailto:${realEmail}`;
-        }
-        iterations += 1 / 2;
-      }, 30);
+const copyEmailBtn = document.getElementById('btn-copy-email')
+const contactToast = document.getElementById('contact-toast')
+if (copyEmailBtn) {
+  let toastTimer
+  copyEmailBtn.addEventListener('click', async () => {
+    const email = copyEmailBtn.dataset.email
+    try {
+      await navigator.clipboard.writeText(email)
+      copyEmailBtn.textContent = 'Copied ✓'
+      contactToast.textContent = `${email} copied to your clipboard.`
+    } catch {
+      window.location.href = `mailto:${email}`
+      return
     }
-  });
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => {
+      copyEmailBtn.textContent = 'Copy email'
+      contactToast.textContent = ''
+    }, 2500)
+  })
 }
 
 /* ═══════════════════════════════════════════════════════════════

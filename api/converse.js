@@ -60,7 +60,7 @@ export default async function handler(req, res) {
     PROFILE,
     projectsText(),
     live,
-    quill ? `QUILLWAVE LATEST RELEASE: v${quill.version}, published ${quill.published?.slice(0, 10)}, Windows installer ${Math.round(quill.size / 1e6)} MB. Visitors download it with the Download button on this site (it always serves the newest release).` : '',
+    quill ? `QUILLWAVE LATEST RELEASE: v${quill.version}, published ${quill.published?.slice(0, 10)}, Windows installer ${Math.round(quill.size / 1e6)} MB. Visitors get it at https://quillwave-app.web.app/ (free sign-in, then Download for Windows).` : '',
     docs,
     section ? `The visitor currently has this part of the site on screen — ${SECTIONS[section]}` : '',
   ].filter(Boolean).join('\n\n')

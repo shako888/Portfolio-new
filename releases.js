@@ -1,7 +1,7 @@
 /*
    Latest Quillwave release, fetched once and shared by the Builds card, the Explore popup
-   and the gallery. The download links themselves always go through /api/quillwave, which
-   redirects to the newest installer, so they stay current even if this label can't load.
+   and the gallery. Visitors are linked to the Quillwave website; this only feeds the
+   version labels.
 */
 
 export const QUILLWAVE_DOWNLOAD = '/api/quillwave'

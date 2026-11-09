@@ -100,7 +100,7 @@
     <!-- ─── About ────────────────────────────── -->
     <section class="about" id="about">
       <div class="about-left">
-        <p class="eyebrow decode-text">01 — Mission</p>
+        <p class="eyebrow decode-text">01 — About</p>
         <div class="about-stat-stack">
           <div class="stat-item">
             <span class="stat-num" data-target="20" id="stat-projects">0</span>
@@ -120,7 +120,9 @@
             <span class="tech-pill">HTML / CSS</span>
             <span class="tech-pill">SQL</span>
             <span class="tech-pill">Bash</span>
-            <span class="tech-pill">Typescript</span>
+            <span class="tech-pill">TypeScript</span>
+            <span class="tech-pill">Rust</span>
+            <span class="tech-pill">C#</span>
           </div>
         </div>
       </div>
@@ -128,9 +130,8 @@
         <div class="discipline-card panel-sec" data-index="01">
           <div class="dc-bg-num">01</div>
           <h3>Security</h3>
-          <p>Deeply focused on penetration testing, identifying application layer vulnerabilities and building robust
-            defense mechanisms. Experienced in simulating real-world attack vectors (SQLi, XSS) and developing custom
-            SOC dashboards for real-time threat monitoring.</p>
+          <p>I learn security by breaking things I built myself: a deliberately vulnerable site to practise SQL
+            injection and XSS against, with a SOC-style dashboard that shows the attacks as they happen.</p>
         </div>
         <div class="discipline-card panel-net" data-index="02">
           <div class="dc-bg-num">02</div>
@@ -141,9 +142,8 @@
         <div class="discipline-card panel-dev" data-index="03">
           <div class="dc-bg-num">03</div>
           <h3>Development</h3>
-          <p>Bridging the gap between theory and functional products. Experienced in engineering full-stack
-            production tools, high-performance browser extensions, and seamlessly integrating external AI APIs natively
-            into the browser.</p>
+          <p>Desktop apps in Electron, Rust and C#, browser extensions and web apps, often with an AI API behind
+            them. Lead developer on Quillwave, an AI news reader for Windows.</p>
         </div>
       </div>
     </section>
@@ -168,7 +168,7 @@
             <div class="cert-body">
               <span class="cert-badge">IBM SkillsBuild</span>
               <h3>AI Fundamentals</h3>
-              <p>Fundamentals of AI, machine learning, deep learning, and deploying real-world AI solutions using IBM
+              <p>The basics of AI, machine learning and deep learning, and how they are applied with IBM
                 tooling and cloud platforms.</p>
               <div class="cert-footer">
                 <div class="cert-meta">
@@ -197,8 +197,8 @@
             <div class="cert-body">
               <span class="cert-badge">IBM SkillsBuild</span>
               <h3>Cybersecurity Fundamentals</h3>
-              <p>Core principles of cyber security, threat intelligence, incident response, and protecting data
-                infrastructure in enterprise environments.</p>
+              <p>Core security principles, common threats, and how organisations detect and respond to
+                incidents.</p>
               <div class="cert-footer">
                 <div class="cert-meta">
                   <span class="cert-issuer">Issued by IBM SkillsBuild</span>
@@ -247,10 +247,10 @@
       <div class="builds-container">
         <!-- Card 1: Quillwave (lead developer) -->
         <div class="build-card panel-1" data-title="Quillwave"
-          data-desc="Quillwave is a Windows desktop app that pulls nearly 100 AI news sources (Hacker News, arXiv, AI lab blogs, the tech press, newsletters and subreddits) into one ranked feed with a clean full-article reader. Its assistant searches the feed, reads articles and answers with links, and Brief me sums up the day’s AI news in about a minute. Notes, highlights and bookmarks sync to your account. Junyu is the lead developer. Built with Electron, a Python news scanner compiled into its own executable, and a Firebase website and API, with a custom installer that keeps the app updated. The download button always fetches the newest release."
+          data-desc="Quillwave is a Windows desktop app that pulls nearly 100 AI news sources (Hacker News, arXiv, AI lab blogs, the tech press, newsletters and subreddits) into one ranked feed with a clean full-article reader. Its assistant searches the feed, reads articles and answers with links, and Brief me sums up the day’s AI news in about a minute. Notes, highlights and bookmarks sync to your account. Junyu is the lead developer. Built with Electron, a Python news scanner compiled into its own executable, and a Firebase website and API, with a custom installer that keeps the app updated."
           data-tags="Lead developer,Electron,Python,Firebase,AI"
           data-img="./assets/quillwave.png"
-          data-download="/api/quillwave">
+          data-website="https://quillwave-app.web.app/">
           <div class="build-image-wrapper is-icon">
             <img src="./assets/quillwave.png" alt="Quillwave app icon" />
           </div>
@@ -265,14 +265,9 @@
               <p class="build-role">Lead developer</p>
               <p>All your AI news in one sitting: nearly 100 sources in one ranked feed, an assistant that briefs you in a minute, and notes that keep up with you.</p>
               <div class="tags">
-                <a class="tag-link download-btn" href="/api/quillwave" data-release-label="quillwave" rel="nofollow">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  <span class="download-label">Download for Windows</span>
+                <a class="tag-link download-btn" href="https://quillwave-app.web.app/" target="_blank" rel="noopener">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                  <span class="download-label">Visit website</span>
                 </a>
                 <button class="tag-link open-modal-btn">Explore →</button>
               </div>
@@ -431,7 +426,8 @@
 
     <!-- ─── Terminal Experience ────────────────── -->
     <section class="terminal-section" id="experience">
-      <p class="eyebrow centered decode-text">05 — Operations Log</p>
+      <p class="eyebrow centered decode-text">05 — Experience</p>
+      <div class="experience-grid">
       <div class="terminal-window">
         <div class="terminal-header">
           <div class="mac-btns">
@@ -445,6 +441,19 @@
           <!-- GSAP typed text goes here -->
         </div>
       </div>
+
+      <!-- Live GitHub activity (activity.js) -->
+      <aside class="activity-card" aria-labelledby="activity-title">
+        <div class="activity-head">
+          <h3 id="activity-title">Recently shipped</h3>
+          <span class="activity-live"><i class="gc-pulse"></i>Live from GitHub</span>
+        </div>
+        <ol class="activity-list" id="activity-list">
+          <li class="activity-empty">Loading recent activity…</li>
+        </ol>
+        <a class="activity-more" href="https://github.com/jjtjtyt6644" target="_blank" rel="noopener">All activity on GitHub →</a>
+      </aside>
+      </div>
     </section>
 
     <!-- ─── Contact ──────────────────────────── -->
@@ -454,12 +463,13 @@
         <span class="line-wrap"><span class="line">Let's</span></span>
         <span class="line-wrap"><em class="line">Talk.</em></span>
       </h2>
-      <p class="contact-sub">Open to collaborations, security chats, and everything in between.</p>
+      <p class="contact-sub">Have a project in mind, or want to talk security? Email is the best way to reach me.</p>
       <div class="contact-links">
-        <a href="#" class="magnetic-btn decrypt-btn" id="btn-email" data-email="yaoprox0@gmail.com">0x8F92A...
-          [DECRYPT]</a>
-        <a href="https://github.com/jjtjtyt6644" target="_blank" class="magnetic-btn" id="btn-gh">GitHub →</a>
+        <a href="mailto:yaoprox0@gmail.com" class="magnetic-btn contact-email" id="btn-email">yaoprox0@gmail.com</a>
+        <button type="button" class="magnetic-btn contact-copy" id="btn-copy-email" data-email="yaoprox0@gmail.com">Copy email</button>
+        <a href="https://github.com/jjtjtyt6644" target="_blank" rel="noopener" class="magnetic-btn" id="btn-gh">GitHub →</a>
       </div>
+      <p class="contact-toast" id="contact-toast" role="status" aria-live="polite"></p>
     </section>
 
   </main>
@@ -469,7 +479,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span class="footer-logo">JY</span>
-        <p class="footer-copy">© <span id="footer-year">2026</span> Junyu. Built with intention.</p>
+        <p class="footer-copy">© <span id="footer-year">2026</span> Junyu. Built with Vite, GSAP and Three.js.</p>
       </div>
       <div class="footer-links">
         <a href="https://github.com/jjtjtyt6644" target="_blank" class="footer-link">GitHub</a>
@@ -495,6 +505,7 @@
         <div class="pd-actions">
           <a class="pd-btn pd-btn-primary" id="pd-github" href="#" target="_blank" rel="noopener">Open on GitHub →</a>
           <button type="button" class="pd-btn" id="pd-clone">Copy clone command</button>
+          <button type="button" class="pd-btn" id="pd-share">Copy link</button>
         </div>
         <p class="pd-readme-label">README · live from GitHub</p>
         <article class="pd-readme" id="pd-readme"></article>
@@ -524,7 +535,7 @@
   <div class="mascot-widget" id="mascot-widget">
     <!-- Speech bubble -->
     <div class="mascot-bubble" id="mascot-bubble">
-      <span class="bubble-text" id="bubble-text">Hi! I'm Junyu's guide. Scroll down to explore! 👋</span>
+      <span class="bubble-text" id="bubble-text">Hi, I'm Junyu's guide. Scroll and I'll walk you through his work.</span>
       <button class="bubble-close" id="bubble-close" aria-label="Dismiss">✕</button>
     </div>
 
@@ -534,7 +545,7 @@
       <div class="mascot-char" id="mascot-char">
         <img src="./assets/mascot.png" alt="Junyu's mascot" />
       </div>
-      <button class="chat-toggle-btn" id="chat-toggle-btn">Chat with me!</button>
+      <button class="chat-toggle-btn" id="chat-toggle-btn">Ask me</button>
     </div>
   </div>
 
@@ -543,7 +554,7 @@
     <div class="ai-chat-header">
       <div class="ai-chat-title">
         <span class="badge-dot" style="animation:none; width:6px; height:6px;"></span>
-        Agent Core
+        Ask about Junyu
       </div>
       <button class="ai-chat-close" id="ai-chat-close" aria-label="Close chat">✕</button>
     </div>
@@ -556,14 +567,14 @@
           <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
         <div class="disclaimer-text">
-          <strong>System Notice:</strong> This AI model may exhibit hallucinated behavior. Verification of data with
-          Junyu is recommended.
+          Answers come from this site and Junyu's GitHub, but AI can still get things wrong. Check anything
+          important with Junyu.
         </div>
       </div>
 
     </div>
     <div class="ai-chat-input-area">
-      <input type="text" id="ai-chat-input" placeholder="Query agent..." autocomplete="off" />
+      <input type="text" id="ai-chat-input" placeholder="Ask about his projects…" aria-label="Ask a question about Junyu" autocomplete="off" />
       <button id="ai-chat-send" aria-label="Send message">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
           stroke-linecap="round" stroke-linejoin="round">
@@ -571,25 +582,6 @@
           <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
         </svg>
       </button>
-    </div>
-  </div>
-
-  <!-- ─── Chat Rate Limit Modal ──────────────────── -->
-  <div class="chat-limit-overlay" id="chat-limit-overlay">
-    <div class="chat-limit-modal" id="chat-limit-modal">
-      <h3 id="chat-limit-title">Nearing Limit</h3>
-      <p id="chat-limit-desc">You are nearing your chat message limit. Please slow down to avoid a temporary lockout.
-      </p>
-      <button id="chat-limit-close">Acknowledge</button>
-    </div>
-  </div>
-
-  <!-- ─── Mascot Rate Limit Modal ─────────────────── -->
-  <div class="rate-limit-overlay" id="rate-limit-overlay">
-    <div class="rate-limit-modal">
-      <h3>Rate Limit Exceeded</h3>
-      <p>Please stop pressing. You have been rate limited for 2 minutes due to excessive requests.</p>
-      <button id="rate-limit-close">Acknowledge</button>
     </div>
   </div>
 

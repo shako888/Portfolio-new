@@ -29,6 +29,12 @@ const LANG_COLORS = {
 }
 const langColor = lang => LANG_COLORS[lang] || '#64748b'
 
+// Two-letter tile for each project: "RobloxAccountManager" → RA, "Web-Proxy" → WP, "Killswitch" → KI
+const monogram = name => {
+  const words = name.split(/[-_\s]+|(?=[A-Z][a-z])/).filter(Boolean)
+  return (words.length > 1 ? words[0][0] + words[1][0] : name.slice(0, 2)).toUpperCase()
+}
+
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
 // "owner/name" for each project: its own `repo` field, else taken from the jjtjtyt6644 URL
@@ -71,11 +77,11 @@ export function initGallery({ lenis }) {
 
   const projects = PROJECTS.map((p, i) => ({ ...p, full: fullRepo(p), order: i, stars: 0, pushed: null, topics: [] }))
 
-  const DL_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+  const WEB_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'
   const GH_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
-  // Download projects (Quillwave) get a download link instead of a GitHub link
-  const cardLink = p => p.download
-    ? `<a href="${esc(p.download)}" rel="nofollow" class="gc-link gc-download">${DL_ICON}<span>Download</span></a>`
+  // Projects with their own website (Quillwave) link there instead of GitHub
+  const cardLink = p => p.website
+    ? `<a href="${esc(p.website)}" target="_blank" rel="noopener" class="gc-link gc-download">${WEB_ICON}<span>Website</span></a>`
     : `<a href="${esc(p.url)}" target="_blank" rel="noopener" class="gc-link">${GH_ICON}GitHub</a>`
   const state = { q: '', filter: 'all', lang: null, sort: 'updated' }
 
@@ -88,7 +94,7 @@ export function initGallery({ lenis }) {
       <button class="gc-hit" type="button" aria-label="Open details for ${esc(p.name)}"></button>
       <div class="gc-spot" aria-hidden="true"></div>
       <div class="gc-header">
-        <div class="gc-icon" aria-hidden="true">${esc(p.icon)}</div>
+        <div class="gc-icon" aria-hidden="true" style="--tile:${langColor(p.lang)}">${esc(monogram(p.name))}</div>
         <span class="gc-lang"><i style="background:${langColor(p.lang)}"></i>${esc(p.lang)}</span>
       </div>
       <h3 class="gc-title">${esc(p.name)}${p.role ? ` <span class="gc-role">${esc(p.role)}</span>` : ''}</h3>
@@ -230,7 +236,7 @@ export function initGallery({ lenis }) {
 
   // Newest Quillwave release shown on its card (version + installer size)
   quillwaveRelease.then(info => {
-    const q = info && projects.find(p => p.download === '/api/quillwave')
+    const q = info && projects.find(p => p.name === 'Quillwave')
     if (!q) return
     q.release = info
     renderMeta(q)
@@ -284,7 +290,9 @@ export function initGallery({ lenis }) {
   function openProject(p) {
     lastFocus = document.activeElement
     drawer.style.setProperty('--lang', langColor(p.lang))
-    document.getElementById('pd-icon').textContent = p.icon
+    const icon = document.getElementById('pd-icon')
+    icon.textContent = monogram(p.name)
+    icon.style.setProperty('--tile', langColor(p.lang))
     document.getElementById('pd-title').textContent = p.name
     document.getElementById('pd-desc').textContent = p.desc
     document.getElementById('pd-meta').innerHTML = [
@@ -292,17 +300,17 @@ export function initGallery({ lenis }) {
       `<span><i style="background:${langColor(p.lang)}"></i>${esc(p.lang)}</span>`,
       p.release ? `<span>Latest v${esc(p.release.version)}</span>` : '',
       p.pushed ? `<span>Updated ${esc(timeAgo(p.pushed))}</span>` : '',
-      p.pushed && !p.download ? `<span>★ ${p.stars}</span>` : '',
+      p.pushed && !p.website ? `<span>★ ${p.stars}</span>` : '',
       ...p.tags.map(t => `<span class="pd-tag">${esc(t)}</span>`),
       ...p.topics.filter(t => !p.tags.includes(t)).map(t => `<span class="pd-tag">${esc(t)}</span>`),
     ].join('')
     const gh = document.getElementById('pd-github')
     const cloneBtn = document.getElementById('pd-clone')
-    if (p.download) {
-      // Download-only projects: newest installer instead of a GitHub link, no clone command
-      gh.href = p.download
-      gh.removeAttribute('target')
-      gh.textContent = p.release ? `Download v${p.release.version} for Windows →` : 'Download for Windows →'
+    if (p.website) {
+      // Projects with their own website: link there instead of GitHub, no clone command
+      gh.href = p.website
+      gh.target = '_blank'
+      gh.textContent = 'Visit the Quillwave website →'
       cloneBtn.hidden = true
     } else {
       gh.href = p.url
@@ -329,6 +337,10 @@ export function initGallery({ lenis }) {
       label.textContent = 'README · live from GitHub'
       loadReadme(p.full)
     }
+    // Shareable link to this project (replaceState: no extra history entries)
+    history.replaceState(null, '', `#project/${encodeURIComponent(p.name)}`)
+    const share = document.getElementById('pd-share')
+    share.textContent = 'Copy link'
   }
 
   async function loadReadme(repoName) {
@@ -371,6 +383,7 @@ export function initGallery({ lenis }) {
     lenis?.start()
     setTimeout(() => { drawer.hidden = true }, 450)
     lastFocus?.focus?.()
+    if (location.hash.startsWith('#project/')) history.replaceState(null, '', location.pathname + location.search)
   }
 
   closeBtn.addEventListener('click', closeProject)
@@ -395,6 +408,27 @@ export function initGallery({ lenis }) {
       btn.textContent = btn.dataset.cmd
     }
   })
+
+  document.getElementById('pd-share').addEventListener('click', async e => {
+    const btn = e.currentTarget
+    try {
+      await navigator.clipboard.writeText(location.href)
+      btn.textContent = 'Link copied ✓'
+    } catch {
+      btn.textContent = location.href
+    }
+  })
+
+  // Deep links: /#project/Killswitch opens that project's panel on arrival
+  const openFromHash = () => {
+    const m = /^#project\/(.+)$/.exec(location.hash)
+    const p = m && projects.find(x => x.name === decodeURIComponent(m[1]))
+    if (!p) return
+    lenis?.scrollTo('#gallery', { immediate: true })
+    setTimeout(() => openProject(p), 300)
+  }
+  window.addEventListener('hashchange', openFromHash)
+  if (location.hash.startsWith('#project/')) window.addEventListener('load', () => setTimeout(openFromHash, 600), { once: true })
 
   apply(false)
   return { openProject: name => { const p = projects.find(x => x.name === name); if (p) openProject(p) } }
