@@ -107,11 +107,28 @@ export function initStage(canvas) {
 
   const target = new Vector3()
   let lastLb = -1
+  let lastDim = -1
+
+  // Pointer parallax: the camera drifts a little toward the cursor, so the scene has depth
+  const pointer = { x: 0, y: 0, sx: 0, sy: 0 }
+  if (!reduced && !lite) {
+    window.addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse') return
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1
+      pointer.y = (e.clientY / window.innerHeight) * 2 - 1
+    }, { passive: true })
+  }
 
   function apply(t) {
     const r = director.rig
     const sway = reduced ? 0 : 1
-    camera.position.set(r.cx + Math.sin(t * 0.45) * 0.18 * sway, r.cy + Math.sin(t * 0.62) * 0.12 * sway, r.cz)
+    pointer.sx += (pointer.x - pointer.sx) * 0.04
+    pointer.sy += (pointer.y - pointer.sy) * 0.04
+    camera.position.set(
+      r.cx + Math.sin(t * 0.45) * 0.18 * sway + pointer.sx * 0.9,
+      r.cy + Math.sin(t * 0.62) * 0.12 * sway - pointer.sy * 0.45,
+      r.cz,
+    )
     // Portrait screens: pull off-centre framing back toward the core and widen the lens,
     // so rule-of-thirds compositions don't push the subject out of a narrow frame.
     const narrow = Math.min(camera.aspect, 1)
@@ -139,6 +156,12 @@ export function initStage(canvas) {
     if (lb !== lastLb) {
       root.style.setProperty('--lb', lb)
       lastLb = lb
+    }
+    // Dim the scene behind text-heavy sections (the .stage-scrim layer reads this)
+    const dim = Math.round(r.dim * 100) / 100
+    if (dim !== lastDim) {
+      root.style.setProperty('--scrim', dim)
+      lastDim = dim
     }
   }
 

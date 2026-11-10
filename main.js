@@ -60,7 +60,8 @@ gsap.timeline({ defaults: { ease: 'expo.out' } })
   // fromTo: the badge starts at opacity 0 in CSS, so a plain .from() would animate 0 → 0
   .fromTo('.hero-badge', { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 1.2, delay: 0.2 })
   .from('.hero .line', { y: '110%', rotationZ: 3, opacity: 0, duration: 1.6, stagger: 0.12 }, '-=0.8')
-  .from('.hero-sub', { opacity: 0, letterSpacing: '10px', duration: 1.2 }, '-=0.8')
+  .fromTo('.hero-lede', { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.1 }, '-=1')
+  .fromTo('.hero-actions', { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.1 }, '-=0.9')
   .to('.hero-scroll', { opacity: 1, duration: 0.6 }, '-=0.4')
   .to('.scroll-line', { scaleX: 1, duration: 0.8, ease: 'power3.out' }, '<')
 
@@ -353,9 +354,7 @@ const PINNED_RESPONSES = {
 }
 const PINNED_INDEXES = {}
 
-const CACHED_RESPONSES = {
-  contact: "This is Junyu's contact info. Please note he is a high schooler!"
-}
+const CACHED_RESPONSES = {}
 
 
 // The facts for each section live server-side (api/_knowledge.js); the browser only sends the section id.
@@ -406,8 +405,18 @@ const FALLBACK_LINES = {
 }
 
 
+// On phones the bubble would cover the content, so it stays closed until the mascot is tapped
+// and tucks itself away again a few seconds after it finishes talking.
+const compactMascot = window.matchMedia('(max-width: 640px)')
+let bubbleHideTimer = null
+function showBubble() {
+  clearTimeout(bubbleHideTimer)
+  mascotBubble.classList.add('visible')
+}
+
 function typeText(text) {
   clearInterval(typingTimer)
+  clearTimeout(bubbleHideTimer)
   bubbleText.classList.remove('typing')
   bubbleText.textContent = ''
 
@@ -423,6 +432,9 @@ function typeText(text) {
       clearInterval(typingTimer)
       typingTimer = null
       bubbleText.classList.remove('typing')
+      if (compactMascot.matches) {
+        bubbleHideTimer = setTimeout(() => mascotBubble.classList.remove('visible'), 6000)
+      }
     }
   }, 38)
 }
@@ -437,8 +449,10 @@ async function switchSection(section) {
   activeSection = section
   lastSectionSwap = now
 
+  // Nothing to narrate into while the bubble is closed (phones, or dismissed)
+  if (!mascotBubble.classList.contains('visible')) return
 
-  typeText("Processing context...")
+  typeText('…')
 
 
   gsap.fromTo(mascotChar,
@@ -506,7 +520,8 @@ mascotChar.addEventListener('click', async () => {
     .to(mascotChar, { scale: 0.85, rotation: -15, duration: 0.2 })
     .to(mascotChar, { scale: 1, rotation: 0, duration: 1.2, ease: 'elastic.out(1, 0.3)' });
 
-  typeText("Analyzing current view...");
+  showBubble()
+  typeText('…')
 
   const message = await fetchElaboration(activeSection || 'hero');
   typeText(message);
@@ -532,7 +547,7 @@ mascotChar.addEventListener('dblclick', () => {
 
 
 setTimeout(() => {
-  mascotBubble.classList.add('visible')
+  if (!compactMascot.matches) showBubble()
   activeSection = ''
   lastSectionSwap = 0
 
@@ -1248,20 +1263,47 @@ sectionIds.forEach(id => {
   })
 })
 
+// Back at the top: no section is current
+ScrollTrigger.create({ trigger: '#hero', start: 'top top', end: 'bottom 55%', onEnterBack: () => setActiveNav(null) })
+
+const navIndicator = document.getElementById('nav-indicator')
+let activeNavId = null
+
 function setActiveNav(id) {
+  activeNavId = id
   navBtns.forEach(btn => btn.classList.remove('nav-active'))
-  const active = document.querySelector(`.nav-btn[data-nav="${id}"]`)
+  const active = id && document.querySelector(`.nav-btn[data-nav="${id}"]`)
   if (active) active.classList.add('nav-active')
+  if (!navIndicator) return
+  // Slide the single indicator under the current link
+  if (active) {
+    navIndicator.style.setProperty('--nav-x', `${active.offsetLeft}px`)
+    navIndicator.style.setProperty('--nav-w', `${active.offsetWidth}px`)
+  }
+  navIndicator.style.setProperty('--nav-o', active ? 1 : 0)
 }
+window.addEventListener('resize', () => setActiveNav(activeNavId))
+document.fonts?.ready.then(() => setActiveNav(activeNavId))
 
 /* ═══════════════════════════════════════════════════════════════
    BUILDS PROGRESS DOTS
 ═══════════════════════════════════════════════════════════════ */
 const bpDots = document.querySelectorAll('.bp-dot')
 
+const buildsCurrent = document.getElementById('builds-current')
+const buildsTotal = document.querySelector('.builds-total')
+if (buildsTotal) buildsTotal.textContent = `/ ${String(cards.length).padStart(2, '0')}`
+let activeDot = -1
+
 function setActiveDot(index) {
+  if (index === activeDot) return
+  activeDot = index
   bpDots.forEach(d => d.classList.remove('active'))
   if (bpDots[index]) bpDots[index].classList.add('active')
+  if (buildsCurrent) {
+    buildsCurrent.textContent = String(index + 1).padStart(2, '0')
+    gsap.fromTo(buildsCurrent, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' })
+  }
 }
 
 // Sync dot with scroll progress of builds section
@@ -1275,6 +1317,48 @@ ScrollTrigger.create({
     setActiveDot(idx)
   }
 })
+
+/* ═══════════════════════════════════════════════════════════════
+   IN-PAGE LINKS — glide to the section instead of jumping
+═══════════════════════════════════════════════════════════════ */
+document.addEventListener('click', e => {
+  const link = e.target.closest('a[href^="#"]')
+  if (!link) return
+  const hash = link.getAttribute('href')
+  if (hash.length < 2 || hash.startsWith('#project/')) return
+  let target
+  try { target = document.querySelector(hash) } catch { return }
+  if (!target) return
+  e.preventDefault()
+  // A pinned section sits inside a spacer; its start is the spacer's top
+  if (target.parentElement?.classList.contains('pin-spacer')) target = target.parentElement
+  lenis.scrollTo(target, { duration: reduceMotion ? 0 : 1.6 })
+})
+
+/* ═══════════════════════════════════════════════════════════════
+   SCROLL REVEALS — one shared entrance for elements without their own
+═══════════════════════════════════════════════════════════════ */
+if (!reduceMotion) {
+  // (not the footer: it sits at the very bottom and may never cross the trigger line)
+  const revealTargets = gsap.utils.toArray('.about-heading, .section-heading, .activity-card, .credly-cta')
+  gsap.set(revealTargets, { opacity: 0, y: 28 })
+  ScrollTrigger.batch(revealTargets, {
+    start: 'top 88%',
+    once: true,
+    onEnter: batch => gsap.to(batch, { opacity: 1, y: 0, duration: 1, ease: 'power3.out', stagger: 0.1 }),
+  })
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOCAL TIME — Singapore clock in the footer
+═══════════════════════════════════════════════════════════════ */
+const localTime = document.getElementById('local-time')
+if (localTime) {
+  const fmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Singapore' })
+  const tickClock = () => { localTime.textContent = fmt.format(new Date()) }
+  tickClock()
+  setInterval(tickClock, 20000)
+}
 
 /* ═══════════════════════════════════════════════════════════════
    MATRIX EASTER EGG

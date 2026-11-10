@@ -7,7 +7,9 @@
   <title>Junyu | Cyber Security & Networking</title>
   <meta name="description"
     content="Junyu — Singapore-based high schooler passionate about cyber security, networking, and building things that matter." />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,800;0,900;1,300&display=swap"
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..900&family=Geist+Mono:wght@400..600&family=Instrument+Serif:ital@1&display=swap"
     rel="stylesheet" />
   <meta name="theme-color" content="#07090f" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307090f'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='900' fill='%237dd3fc' text-anchor='middle'%3EJY%3C/text%3E%3C/svg%3E" />
@@ -21,6 +23,7 @@
 <body>
   <!-- ─── Cinematic 3D stage (scene/stage.js) ─── -->
   <canvas id="stage" aria-hidden="true"></canvas>
+  <div class="stage-scrim" aria-hidden="true"></div>
   <div class="letterbox letterbox-top" aria-hidden="true"></div>
   <div class="letterbox letterbox-bottom" aria-hidden="true"></div>
 
@@ -50,6 +53,7 @@
   <nav class="navbar" id="navbar">
     <div class="logo">JY</div>
     <div class="nav-links">
+      <span class="nav-indicator" id="nav-indicator" aria-hidden="true"></span>
       <a href="#about" class="nav-btn" data-nav="about">About</a>
       <a href="#certs" class="nav-btn" data-nav="certs">Certs</a>
       <a href="#builds" class="nav-btn" data-nav="builds">Builds</a>
@@ -90,7 +94,20 @@
         <span class="line-wrap"><span class="line">High Schooler</span></span>
         <span class="line-wrap"><span class="line">&amp; Builder.</span></span>
       </h1>
-      <p class="hero-sub">Cyber Security · Networking · Open Source</p>
+      <p class="hero-lede">I build security tools, networking projects and desktop apps.
+        Right now I lead development of <a href="https://quillwave-app.web.app/" target="_blank" rel="noopener">Quillwave</a>,
+        an AI news reader for Windows.</p>
+      <div class="hero-actions">
+        <a href="#builds" class="btn btn-primary">
+          See my work
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19 12 12 19 5 12"></polyline>
+          </svg>
+        </a>
+        <a href="#contact" class="btn btn-ghost">Get in touch</a>
+      </div>
       <div class="hero-scroll">
         <div class="scroll-line"></div>
         <span>Scroll</span>
@@ -101,6 +118,7 @@
     <section class="about" id="about">
       <div class="about-left">
         <p class="eyebrow decode-text">01 — About</p>
+        <h2 class="about-heading">What I <em>work on.</em></h2>
         <div class="about-stat-stack">
           <div class="stat-item">
             <span class="stat-num" data-target="20" id="stat-projects">0</span>
@@ -240,6 +258,7 @@
         <span class="bp-dot" data-index="3"></span>
         <span class="bp-dot" data-index="4"></span>
       </div>
+      <div class="builds-counter" aria-hidden="true"><span id="builds-current">01</span><span class="builds-total">/ 05</span></div>
       <div class="builds-header-absolute">
         <p class="eyebrow centered decode-text">03 — Selected Builds</p>
       </div>
@@ -427,6 +446,7 @@
     <!-- ─── Terminal Experience ────────────────── -->
     <section class="terminal-section" id="experience">
       <p class="eyebrow centered decode-text">05 — Experience</p>
+      <h2 class="section-heading">What I've been <em>up to.</em></h2>
       <div class="experience-grid">
       <div class="terminal-window">
         <div class="terminal-header">
@@ -480,6 +500,7 @@
       <div class="footer-left">
         <span class="footer-logo">JY</span>
         <p class="footer-copy">© <span id="footer-year">2026</span> Junyu. Built with Vite, GSAP and Three.js.</p>
+        <p class="footer-time">Singapore <span id="local-time">--:--</span> SGT</p>
       </div>
       <div class="footer-links">
         <a href="https://github.com/jjtjtyt6644" target="_blank" class="footer-link">GitHub</a>
